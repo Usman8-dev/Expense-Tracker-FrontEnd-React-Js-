@@ -10,10 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.5.7",
+    "@primereact/core": "^11.0.0",
+    "@primeuix/themes": "^3.0.0",
     "@tailwindcss/vite": "^4.3.3",
+    "axios": "^1.18.1",
+    "primereact": "^10.9.8",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.3"
+    "react-hook-form": "^7.83.0",
+    "react-router-dom": "^7.18.1",
+    "tailwindcss": "^4.3.3",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
