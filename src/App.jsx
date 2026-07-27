@@ -6,7 +6,7 @@ import Login from "./Pages/Auths/Login";
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/layout";
-import dashboard from "./Pages/dashboard";
+import Dashboard from "./Pages/dashboard";
 function App() {
   return (
     <div>
@@ -20,7 +20,7 @@ function App() {
                 <Route path="/" element={<Login/>} />
 
                 <Route element={<Layout />}>
-                  <Route path="/dashboard" element={<dashboard/>} />
+                  <Route path="/dashboard" element={<Dashboard/>} />
                 </Route>
               </Routes>
             </ToastProvider>

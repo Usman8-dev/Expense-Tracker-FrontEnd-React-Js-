@@ -97,20 +97,29 @@ function Navbar() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16 sm:h-20">
             {/* Logo */}
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/dashboard")}>
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => navigate("/dashboard")}
+            >
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm sm:text-lg">₹</span>
+                <span className="text-white font-bold text-sm sm:text-lg">
+                  ₹
+                </span>
               </div>
-              <div className="hidden sm:block">
-                <h1 className="font-display font-bold text-white text-lg">ExpenseFlow</h1>
-                <p className="text-emerald-400 text-xs">Smart Finance</p>
+              <div>
+                <h1 className="font-display font-bold text-white text-base sm:text-lg">
+                  ExpenseFlow
+                </h1>
+                <p className="text-emerald-400 text-xs hidden sm:block">
+                  Smart Finance
+                </p>
               </div>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
-                <a  
+                <a
                   key={link.path}
                   onClick={() => navigate(link.path)}
                   className={`nav-link text-sm font-medium cursor-pointer ${
@@ -131,13 +140,17 @@ function Navbar() {
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="text-white text-sm font-medium">{user?.name}</span>
+                  <span className="text-white text-sm font-medium">
+                    {user?.name}
+                  </span>
                 </button>
 
                 {/* Desktop Dropdown */}
                 <div className="absolute right-0 mt-2 w-48 rounded-xl profile-dropdown hidden group-hover:block">
                   <div className="p-4 border-b border-slate-700">
-                    <p className="text-white text-sm font-medium">{user?.name}</p>
+                    <p className="text-white text-sm font-medium">
+                      {user?.name}
+                    </p>
                     <p className="text-slate-400 text-xs">{user?.email}</p>
                   </div>
                   <button
@@ -165,7 +178,9 @@ function Navbar() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+                  d={
+                    isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"
+                  }
                 />
               </svg>
             </button>
@@ -175,7 +190,6 @@ function Navbar() {
           {isOpen && (
             <div className="mobile-menu md:hidden pb-6">
               <div className="flex flex-col gap-3 mb-4">
-                
                 {navLinks.map((link) => (
                   <a
                     key={link.path}
@@ -207,7 +221,9 @@ function Navbar() {
                       </span>
                     </div>
                     <div className="text-left">
-                      <p className="text-white text-sm font-medium">{user?.name}</p>
+                      <p className="text-white text-sm font-medium">
+                        {user?.name}
+                      </p>
                       <p className="text-slate-400 text-xs">{user?.email}</p>
                     </div>
                   </div>
