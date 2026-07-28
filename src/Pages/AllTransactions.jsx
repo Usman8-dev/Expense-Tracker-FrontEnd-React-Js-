@@ -4,7 +4,13 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { TrendingUp, TrendingDown, Search, ArrowLeft, Receipt } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Search,
+  ArrowLeft,
+  Receipt,
+} from "lucide-react";
 import api from "../apis/axios";
 import { useToast } from "../context/ToastContext";
 
@@ -160,14 +166,15 @@ function AllTransactions() {
 
         .p-datatable-wrapper {
           border-radius: 16px !important;
-          overflow: hidden !important;
+            overflow-x: auto !important;   /* allow horizontal scroll on mobile */
+            -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
         }
         
         .p-datatable {
           background: transparent !important;
           color: #ffffff !important;
           border-radius: 16px;
-          overflow: hidden;
+        //   overflow: hidden;
         }
 
         .p-datatable-header {
@@ -335,7 +342,9 @@ function AllTransactions() {
                 <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 items-center justify-center mb-4">
                   <Receipt size={24} className="text-white" />
                 </div>
-                <h3 className="text-white font-semibold mb-1.5">No transactions yet</h3>
+                <h3 className="text-white font-semibold mb-1.5">
+                  No transactions yet
+                </h3>
                 <p className="text-slate-400 text-sm">
                   Start by adding your first income or expense
                 </p>
@@ -344,23 +353,54 @@ function AllTransactions() {
               <DataTable
                 value={expenses}
                 paginator
-                rows={10}
-                rowsPerPageOptions={[5, 10, 25, 50]}
+                rows={5}
+                // rowsPerPageOptions={[5, 10, 25, 50]}
+                rowsPerPageOptions={[5, 10, 25]}
                 loading={loading}
                 globalFilterFields={["title", "description", "amount", "type"]}
                 globalFilter={globalFilterValue}
                 header={renderHeader()}
                 responsiveLayout="scroll"
                 emptyMessage="No transactions found"
-                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-                rowClassName={(_, options) => (options.rowIndex % 2 === 1 ? "p-row-odd" : "")}
+                rowClassName={(_, options) =>
+                  options.rowIndex % 2 === 1 ? "p-row-odd" : ""
+                }
               >
-                <Column field="title" header="Title" body={titleBodyTemplate} sortable style={{ minWidth: "200px" }} />
-                <Column field="date" header="Date" body={dateBodyTemplate} sortable style={{ minWidth: "150px" }} />
-                <Column field="amount" header="Amount" body={amountBodyTemplate} sortable style={{ minWidth: "140px" }} />
-                <Column field="type" header="Type" body={typeBodyTemplate} sortable style={{ minWidth: "110px" }} />
-                <Column field="description" header="Description" body={descriptionBodyTemplate} style={{ minWidth: "180px" }} />
+                <Column
+                  field="title"
+                  header="Title"
+                  body={titleBodyTemplate}
+                  sortable
+                  style={{ minWidth: "200px" }}
+                />
+                <Column
+                  field="date"
+                  header="Date"
+                  body={dateBodyTemplate}
+                  sortable
+                  style={{ minWidth: "150px" }}
+                />
+                <Column
+                  field="amount"
+                  header="Amount"
+                  body={amountBodyTemplate}
+                  sortable
+                  style={{ minWidth: "140px" }}
+                />
+                <Column
+                  field="type"
+                  header="Type"
+                  body={typeBodyTemplate}
+                  sortable
+                  style={{ minWidth: "110px" }}
+                />
+                <Column
+                  field="description"
+                  header="Description"
+                  body={descriptionBodyTemplate}
+                  style={{ minWidth: "180px" }}
+                />
               </DataTable>
             )}
           </div>
