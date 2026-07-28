@@ -11,7 +11,10 @@ export const RegisterSchema = yup.object().shape({
     .min(13, "Age must be at least 13")
     .max(120, "Age must be less than 120"),
   email: yup.string().email("Invalid email").required("Email is required"),
-  password: yup.string().required("Password is required"),
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(6, "Password must be at least 6 characters"),
   confirmPassword: yup
     .string()
     .required("Please confirm your password")

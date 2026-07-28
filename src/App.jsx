@@ -7,6 +7,7 @@ import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/layout";
 import Dashboard from "./Pages/dashboard";
+import AllTransactions from "./Pages/AllTransactions";
 function App() {
   return (
     <div>
@@ -21,6 +22,7 @@ function App() {
 
                 <Route element={<Layout />}>
                   <Route path="/dashboard" element={<Dashboard/>} />
+                  <Route path="/expenses/all" element={<AllTransactions/>} />
                 </Route>
               </Routes>
             </ToastProvider>
