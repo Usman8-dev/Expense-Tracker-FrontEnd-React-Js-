@@ -7,8 +7,6 @@ import { InputText } from "primereact/inputtext";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 
 import { Dialog } from "primereact/dialog";
-// import { Button } from "primereact/button";
-// import { confirmDialog } from "primereact/confirmdialog";
 
 
 import {
@@ -65,7 +63,7 @@ function AllTransactions() {
 
 const handleDelete = (id, title) => {
   confirmDialog({
-    message: `Do you want to delete "${title}"?`,
+    message: `Do you want to delete this transaction?`,
     header: "Delete Confirmation",
     icon: "pi pi-info-circle",
     acceptClassName: "p-button-danger",

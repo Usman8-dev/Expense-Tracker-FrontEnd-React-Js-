@@ -180,6 +180,14 @@ const formatCurrency = (value) => {
         .p-datatable .p-datatable-tbody > tr:hover {
           background: rgba(16, 185, 129, 0.05) !important;
         }
+          .p-datatable .p-datatable-thead > tr > th {
+            color: #94a3b8 !important; 
+            }
+
+            .p-datatable .p-datatable-tbody > tr > td {
+            color: #f1f5f9 !important; 
+            font-size: 14px;
+            }
       `}</style>
 
       <div className="space-y-6">
@@ -303,7 +311,7 @@ const formatCurrency = (value) => {
               >
                 <Column field="title" header="Title" />
                 <Column field="date" header="Date" body={dateTemplate} />
-                <Column field="amount" header="Amount" body={amountTemplate} />
+                <Column field="amount" header="Amount" style={{ minWidth: "104px", whiteSpace: "nowrap" }} body={amountTemplate} />
                 <Column field="type" header="Type" body={typeTemplate} />
                 <Column field="description" header="Description" />
               </DataTable>
