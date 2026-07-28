@@ -1,15 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import {
   TrendingUp,
   TrendingDown,
   Search,
   ArrowLeft,
   Receipt,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import api from "../apis/axios";
 import { useToast } from "../context/ToastContext";
@@ -21,6 +24,7 @@ function AllTransactions() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchExpenses();
@@ -51,6 +55,45 @@ function AllTransactions() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      setDeletingId(id);
+      // Adjust endpoint if different, e.g. /expense/delete/${id}
+      await api.delete(`/expense/${id}`);
+
+      showToast({
+        severity: "success",
+        summary: "Deleted",
+        detail: "Transaction deleted successfully",
+        life: 3000,
+      });
+
+      setExpenses((prev) => prev.filter((item) => (item._id || item.id) !== id));
+    } catch (error) {
+      showToast({
+        severity: "error",
+        summary: "Failed",
+        detail: error.response?.data?.message || "Could not delete transaction",
+        life: 3000,
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const confirmDelete = (rowData) => {
+    const id = rowData._id || rowData.id;
+    confirmDialog({
+      message: `Are you sure you want to delete "${rowData.title}"?`,
+      header: "Confirm Delete",
+      icon: "pi pi-exclamation-triangle",
+      acceptClassName: "!bg-red-500 !border-red-500",
+      acceptLabel: "Delete",
+      rejectLabel: "Cancel",
+      accept: () => handleDelete(id),
+    });
   };
 
   const formatCurrency = (value) => {
@@ -115,6 +158,35 @@ function AllTransactions() {
     <span className="text-slate-400 text-sm">{rowData.description || "—"}</span>
   );
 
+  const actionsBodyTemplate = (rowData) => {
+    const id = rowData._id || rowData.id;
+    const isDeleting = deletingId === id;
+
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => navigate(`/expenses/edit/${id}`)}
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
+          title="Edit"
+        >
+          <Pencil size={14} />
+        </button>
+        <button
+          onClick={() => confirmDelete(rowData)}
+          disabled={isDeleting}
+          className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors disabled:opacity-50"
+          title="Delete"
+        >
+          {isDeleting ? (
+            <i className="pi pi-spin pi-spinner text-xs" />
+          ) : (
+            <Trash2 size={14} />
+          )}
+        </button>
+      </div>
+    );
+  };
+
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -166,15 +238,14 @@ function AllTransactions() {
 
         .p-datatable-wrapper {
           border-radius: 16px !important;
-            overflow-x: auto !important;   /* allow horizontal scroll on mobile */
-            -webkit-overflow-scrolling: touch; /* smooth scroll on iOS */
+          overflow-x: auto !important;
+          -webkit-overflow-scrolling: touch;
         }
         
         .p-datatable {
           background: transparent !important;
           color: #ffffff !important;
           border-radius: 16px;
-        //   overflow: hidden;
         }
 
         .p-datatable-header {
@@ -230,16 +301,6 @@ function AllTransactions() {
         }
 
         .p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
-          color: #10b981 !important;
-        }
-
-        .p-datatable .p-column-filter-menu-button,
-        .p-datatable .p-column-filter-clear-button {
-          color: #64748b !important;
-        }
-
-        .p-datatable .p-column-filter-menu-button:hover {
-          background: rgba(16, 185, 129, 0.15) !important;
           color: #10b981 !important;
         }
 
@@ -312,7 +373,30 @@ function AllTransactions() {
           text-align: center !important;
           padding: 60px 20px !important;
         }
+
+        /* ConfirmDialog dark theme */
+        .p-confirm-dialog {
+          background: #1e293b !important;
+          border: 1px solid rgba(148, 163, 184, 0.2) !important;
+          border-radius: 16px !important;
+          color: #e2e8f0 !important;
+        }
+        .p-confirm-dialog .p-dialog-header {
+          background: transparent !important;
+          color: #f1f5f9 !important;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+        }
+        .p-confirm-dialog .p-dialog-content {
+          background: transparent !important;
+          color: #cbd5e1 !important;
+        }
+        .p-confirm-dialog .p-dialog-footer {
+          background: transparent !important;
+          border-top: 1px solid rgba(148, 163, 184, 0.12) !important;
+        }
       `}</style>
+
+      <ConfirmDialog />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -354,7 +438,6 @@ function AllTransactions() {
                 value={expenses}
                 paginator
                 rows={5}
-                // rowsPerPageOptions={[5, 10, 25, 50]}
                 rowsPerPageOptions={[5, 10, 25]}
                 loading={loading}
                 globalFilterFields={["title", "description", "amount", "type"]}
@@ -400,6 +483,13 @@ function AllTransactions() {
                   header="Description"
                   body={descriptionBodyTemplate}
                   style={{ minWidth: "180px" }}
+                />
+                <Column
+                  header="Actions"
+                  body={actionsBodyTemplate}
+                  style={{ minWidth: "120px" }}
+                  frozen
+                  alignFrozen="right"
                 />
               </DataTable>
             )}

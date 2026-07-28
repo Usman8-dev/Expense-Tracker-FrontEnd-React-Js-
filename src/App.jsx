@@ -9,6 +9,7 @@ import Layout from "./components/layout";
 import Dashboard from "./Pages/dashboard";
 import AllTransactions from "./Pages/AllTransactions";
 import Create from "./Pages/Expense/Create";
+import EditTransaction from "./Pages/Expense/Edit";
 function App() {
   return (
     <div>
@@ -26,6 +27,7 @@ function App() {
                   <Route path="/expenses/all" element={<AllTransactions/>} />
 
                   <Route path="/expenses/create" element={<Create/>} />
+                  <Route path="/expenses/edit/:id" element={<EditTransaction/>} />
                 </Route>
               </Routes>
             </ToastProvider>
