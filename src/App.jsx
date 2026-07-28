@@ -10,6 +10,7 @@ import Dashboard from "./Pages/dashboard";
 import AllTransactions from "./Pages/AllTransactions";
 import Create from "./Pages/Expense/Create";
 import EditTransaction from "./Pages/Expense/Edit";
+
 function App() {
   return (
     <div>
@@ -17,7 +18,6 @@ function App() {
         <AuthProvider>
 
             <ToastProvider>
-     
               <Routes>
                 <Route path="/register" element={<Register/>} />
                 <Route path="/" element={<Login/>} />

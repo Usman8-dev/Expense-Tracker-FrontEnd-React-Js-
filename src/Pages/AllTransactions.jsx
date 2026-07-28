@@ -5,6 +5,12 @@ import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
 import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+
+import { Dialog } from "primereact/dialog";
+// import { Button } from "primereact/button";
+// import { confirmDialog } from "primereact/confirmdialog";
+
+
 import {
   TrendingUp,
   TrendingDown,
@@ -57,44 +63,41 @@ function AllTransactions() {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      setDeletingId(id);
-      // Adjust endpoint if different, e.g. /expense/delete/${id}
-      await api.delete(`/expense/${id}`);
-
-      showToast({
-        severity: "success",
-        summary: "Deleted",
-        detail: "Transaction deleted successfully",
-        life: 3000,
-      });
-
-      setExpenses((prev) => prev.filter((item) => (item._id || item.id) !== id));
-    } catch (error) {
-      showToast({
-        severity: "error",
-        summary: "Failed",
-        detail: error.response?.data?.message || "Could not delete transaction",
-        life: 3000,
-      });
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const confirmDelete = (rowData) => {
-    const id = rowData._id || rowData.id;
-    confirmDialog({
-      message: `Are you sure you want to delete "${rowData.title}"?`,
-      header: "Confirm Delete",
-      icon: "pi pi-exclamation-triangle",
-      acceptClassName: "!bg-red-500 !border-red-500",
-      acceptLabel: "Delete",
-      rejectLabel: "Cancel",
-      accept: () => handleDelete(id),
-    });
-  };
+const handleDelete = (id, title) => {
+  confirmDialog({
+    message: `Do you want to delete "${title}"?`,
+    header: "Delete Confirmation",
+    icon: "pi pi-info-circle",
+    acceptClassName: "p-button-danger",
+    acceptLabel: "Delete",
+    rejectLabel: "Cancel",
+    accept: async () => {
+      try {
+        setDeletingId(id);
+        await api.delete(`/expense/delete/${id}`);
+        showToast({
+          severity: "success",
+          summary: "Deleted",
+          detail: "Transaction deleted successfully",
+          life: 3000,
+        });
+        setExpenses((prev) =>
+          prev.filter((item) => (item._id || item.id) !== id)
+        );
+      } catch (error) {
+        showToast({
+          severity: "error",
+          summary: "Failed",
+          detail:
+            error.response?.data?.message || "Could not delete transaction",
+          life: 3000,
+        });
+      } finally {
+        setDeletingId(null);
+      }
+    },
+  });
+};
 
   const formatCurrency = (value) => {
     return `Rs. ${new Intl.NumberFormat("en-PK").format(value || 0)}`;
@@ -158,34 +161,35 @@ function AllTransactions() {
     <span className="text-slate-400 text-sm">{rowData.description || "—"}</span>
   );
 
-  const actionsBodyTemplate = (rowData) => {
-    const id = rowData._id || rowData.id;
-    const isDeleting = deletingId === id;
+ const actionsBodyTemplate = (rowData) => {
+  const id = rowData._id || rowData.id;
+  const isDeleting = deletingId === id;
 
-    return (
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => navigate(`/expenses/edit/${id}`)}
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
-          title="Edit"
-        >
-          <Pencil size={14} />
-        </button>
-        <button
-          onClick={() => confirmDelete(rowData)}
-          disabled={isDeleting}
-          className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors disabled:opacity-50"
-          title="Delete"
-        >
-          {isDeleting ? (
-            <i className="pi pi-spin pi-spinner text-xs" />
-          ) : (
-            <Trash2 size={14} />
-          )}
-        </button>
-      </div>
-    );
-  };
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        onClick={() => navigate(`/expenses/edit/${id}`)}
+        className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
+        title="Edit"
+      >
+        <Pencil size={14} />
+      </button>
+      <button
+        // onClick={() => handleDelete(id, rowData.title)}
+        onClick={() => handleDelete(rowData._id || rowData.id)}
+        disabled={isDeleting}
+        className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors disabled:opacity-50"
+        title="Delete"
+      >
+        {isDeleting ? (
+          <i className="pi pi-spin pi-spinner text-xs" />
+        ) : (
+          <Trash2 size={14} />
+        )}
+      </button>
+    </div>
+  );
+};
 
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
