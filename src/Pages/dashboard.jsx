@@ -195,30 +195,11 @@ const formatCurrency = (value) => {
           </div>
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
-              label="Add Income"
+              label="Add Transaction"
               icon="pi pi-plus"
-              className="flex-1 sm:flex-none !rounded-xl !border-0 !py-3 !font-semibold !text-white bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300 uppercase tracking-wider"
-              onClick={() =>
-                showToast({
-                  severity: "info",
-                  summary: "Coming Soon",
-                  detail: "Add Income feature coming soon",
-                  life: 3000,
-                })
-              }
-            />
-            <Button
-              label="Add Expense"
-              icon="pi pi-plus"
-              className="flex-1 sm:flex-none !rounded-xl !border-0 !py-3 !font-semibold !text-white bg-gradient-to-r !from-orange-500 !via-pink-500 !to-red-500 hover:!shadow-[0_10px_40px_rgba(239,68,68,0.4)] transition-all duration-300 uppercase tracking-wider"
-              onClick={() =>
-                showToast({
-                  severity: "info",
-                  summary: "Coming Soon",
-                  detail: "Add Expense feature coming soon",
-                  life: 3000,
-                })
-              }
+              className="p-6 flex-1 sm:flex-none !rounded-xl !border-0 !py-3 !font-semibold !text-white bg-gradient-to-r !from-orange-500 !via-pink-500 !to-red-500 hover:!shadow-[0_10px_40px_rgba(239,68,68,0.4)] transition-all duration-300 uppercase tracking-wider"
+              onClick={() => navigate("/expenses/create")}
+            
             />
           </div>
         </div>

@@ -8,6 +8,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/layout";
 import Dashboard from "./Pages/dashboard";
 import AllTransactions from "./Pages/AllTransactions";
+import Create from "./Pages/Expense/Create";
 function App() {
   return (
     <div>
@@ -23,6 +24,8 @@ function App() {
                 <Route element={<Layout />}>
                   <Route path="/dashboard" element={<Dashboard/>} />
                   <Route path="/expenses/all" element={<AllTransactions/>} />
+
+                  <Route path="/expenses/create" element={<Create/>} />
                 </Route>
               </Routes>
             </ToastProvider>
