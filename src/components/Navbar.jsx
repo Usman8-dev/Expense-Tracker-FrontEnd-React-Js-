@@ -4,7 +4,6 @@ import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -17,10 +16,10 @@ function Navbar() {
   const isActive = (path) => location.pathname === path;
 
   const navLinks = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Expenses", path: "/expenses" },
-    { name: "Categories", path: "/categories" },
-    { name: "Reports", path: "/reports" },
+    { name: "Dashboard", path: "/dashboard", icon: "📊" },
+    { name: "Expenses", path: "/expenses", icon: "💳" },
+    { name: "Categories", path: "/categories", icon: "📂" },
+    { name: "Reports", path: "/reports", icon: "📈" },
   ];
 
   return (
@@ -30,240 +29,210 @@ function Navbar() {
         
         .font-display { font-family: 'Outfit', sans-serif; }
         
-        @keyframes slideDown {
+        @keyframes slideRight {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateX(-20px);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
           }
         }
         
-        .navbar-glass {
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.8));
+        .sidebar-glass {
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+          backdrop-filter: blur(20px);
+          border-right: 1px solid rgba(148, 163, 184, 0.15);
+          box-shadow: 8px 0 32px 0 rgba(31, 38, 135, 0.2);
+        }
+        
+        .navbar-top {
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
           backdrop-filter: blur(20px);
           border-bottom: 1px solid rgba(148, 163, 184, 0.15);
           box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
         }
         
-        .mobile-menu {
-          animation: slideDown 0.3s ease-out;
+        .sidebar-item {
+          animation: slideRight 0.3s ease-out;
         }
         
         .nav-link {
           position: relative;
           color: #cbd5e1;
           transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          border-radius: 10px;
+          cursor: pointer;
         }
         
         .nav-link::after {
           content: '';
           position: absolute;
-          bottom: -8px;
           left: 0;
-          width: 0;
-          height: 2px;
-          background: linear-gradient(90deg, #10b981, #06b6d4);
-          transition: width 0.3s ease;
+          top: 0;
+          height: 100%;
+          width: 3px;
+          background: linear-gradient(180deg, #10b981, #06b6d4);
+          border-radius: 0 10px 10px 0;
+          transform: scaleY(0);
+          transition: transform 0.3s ease;
         }
         
         .nav-link:hover {
           color: #ffffff;
+          background: rgba(16, 185, 129, 0.1);
         }
         
         .nav-link:hover::after {
-          width: 100%;
+          transform: scaleY(1);
         }
         
         .nav-link.active {
           color: #10b981;
+          background: rgba(16, 185, 129, 0.15);
         }
         
         .nav-link.active::after {
-          width: 100%;
+          transform: scaleY(1);
         }
         
-        .profile-dropdown {
-          animation: slideDown 0.3s ease-out;
-          background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(148, 163, 184, 0.15);
+        .overlay {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
 
-      <nav className="navbar-glass sticky top-0 z-50 w-full">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            {/* Logo */}
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate("/dashboard")}
+      {/* Mobile Top Bar */}
+      {/* Mobile Top Bar */}
+      <div className="navbar-top fixed top-0 left-0 right-0 md:hidden z-40 h-16">
+        <div className="flex items-center justify-between h-full px-4">
+          {/* Hamburger Menu */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-lg hover:bg-slate-800 transition-all"
+          >
+            <svg
+              className={`w-6 h-6 text-white transition-transform ${isOpen ? "rotate-90" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm sm:text-lg">
-                  ₹
-                </span>
-              </div>
-              <div>
-                <h1 className="font-display font-bold text-white text-base sm:text-lg">
-                  ExpenseFlow
-                </h1>
-                <p className="text-emerald-400 text-xs hidden sm:block">
-                  Smart Finance
-                </p>
-              </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+              />
+            </svg>
+          </button>
+
+          {/* App Name - Centered */}
+          <div className="flex items-center gap-2 flex-1 justify-center">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">Rs.</span>
             </div>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              {navLinks.map((link) => (
-                <a
-                  key={link.path}
-                  onClick={() => navigate(link.path)}
-                  className={`nav-link text-sm font-medium cursor-pointer ${
-                    isActive(link.path) ? "active" : ""
-                  }`}
-                >
-                  {link.name}
-                </a>
-              ))}
+            <div>
+              <h1 className="font-display font-bold text-white text-base">
+                ExpenseFlow
+              </h1>
             </div>
-
-            {/* Desktop Profile & Logout */}
-            <div className="hidden md:flex items-center gap-4">
-              <div className="relative group">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 hover:border-emerald-500/60 transition-all">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-white text-sm font-medium">
-                    {user?.name}
-                  </span>
-                </button>
-
-                {/* Desktop Dropdown */}
-                <div className="absolute right-0 mt-2 w-48 rounded-xl profile-dropdown hidden group-hover:block">
-                  <div className="p-4 border-b border-slate-700">
-                    <p className="text-white text-sm font-medium">
-                      {user?.name}
-                    </p>
-                    <p className="text-slate-400 text-xs">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/20 text-sm font-medium transition-all"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden text-white p-2 rounded-lg hover:bg-slate-800 transition-all"
-            >
-              <svg
-                className={`w-6 h-6 transition-transform ${isOpen ? "rotate-90" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={
-                    isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"
-                  }
-                />
-              </svg>
-            </button>
           </div>
 
-          {/* Mobile Navigation */}
-          {isOpen && (
-            <div className="mobile-menu md:hidden pb-6">
-              <div className="flex flex-col gap-3 mb-4">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.path}
-                    onClick={() => {
-                      navigate(link.path);
-                      setIsOpen(false);
-                    }}
-                    className={`nav-link block px-4 py-2 rounded-lg font-medium text-sm cursor-pointer transition-all ${
-                      isActive(link.path)
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "text-slate-300 hover:bg-slate-800"
-                    }`}
-                  >
-                    {link.name}
-                  </a>
-                ))}
+          {/* User Avatar */}
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-xs font-bold">
+              {user?.name?.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar */}
+      <aside
+        className={`sidebar-glass fixed left-0 top-0 h-screen w-64 transform transition-transform duration-300 z-50 overflow-y-auto pt-20 md:pt-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
+        {/* Logo Section - Hidden on Mobile */}
+        <div className="sidebar-item sticky top-0 bg-gradient-to-b from-slate-900 to-transparent p-6 border-b border-slate-700/50">
+          <div
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => {
+              navigate("/dashboard");
+              setIsOpen(false);
+            }}
+          >
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">₹</span>
+            </div>
+            <div>
+              <h1 className="font-display font-bold text-white text-lg">
+                ExpenseFlow
+              </h1>
+              <p className="text-emerald-400 text-xs">Smart Finance</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="sidebar-item p-4 flex flex-col gap-2">
+          {navLinks.map((link) => (
+            <a
+              key={link.path}
+              onClick={() => {
+                navigate(link.path);
+                setIsOpen(false);
+              }}
+              className={`nav-link ${isActive(link.path) ? "active" : ""}`}
+            >
+              <span className="text-xl">{link.icon}</span>
+              <span className="font-medium text-sm">{link.name}</span>
+            </a>
+          ))}
+        </nav>
+
+        {/* Profile Section */}
+        <div className="sidebar-item absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 to-transparent border-t border-slate-700/50">
+          <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                <span className="text-white text-sm font-bold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </span>
               </div>
-
-              {/* Mobile Profile Section */}
-              <div className="border-t border-slate-700 pt-4">
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="text-left">
-                      <p className="text-white text-sm font-medium">
-                        {user?.name}
-                      </p>
-                      <p className="text-slate-400 text-xs">{user?.email}</p>
-                    </div>
-                  </div>
-                  <svg
-                    className={`w-4 h-4 text-emerald-400 transition-transform ${
-                      isProfileOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                    />
-                  </svg>
-                </button>
-
-                {/* Mobile Dropdown */}
-                {isProfileOpen && (
-                  <div className="mobile-menu mt-3 bg-slate-800/50 rounded-lg p-3">
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsOpen(false);
-                        setIsProfileOpen(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/20 font-medium text-sm rounded-lg transition-all"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+              <div className="min-w-0">
+                <p className="text-white text-sm font-medium truncate">
+                  {user?.name}
+                </p>
+                <p className="text-slate-400 text-xs truncate">{user?.email}</p>
               </div>
             </div>
-          )}
+            <button
+              onClick={handleLogout}
+              className="w-full px-3 py-2 text-red-400 hover:bg-red-500/20 font-medium text-sm rounded-lg transition-all"
+            >
+              Logout
+            </button>
+          </div>
         </div>
-      </nav>
+      </aside>
+
+      {/* Overlay for Mobile */}
+      {isOpen && (
+        <div
+          className="overlay fixed inset-0 bg-black/40 z-40 md:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 }
