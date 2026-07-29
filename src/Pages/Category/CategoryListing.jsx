@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { InputText } from "primereact/inputtext";
-import { confirmDialog } from "primereact/confirmdialog";
+// import { confirmDialog } from "primereact/confirmdialog";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import {
   Search,
   ArrowLeft,
@@ -21,6 +22,7 @@ function AllCategories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
 
 
   const fetchCategories = async () => {
@@ -57,38 +59,74 @@ function AllCategories() {
     fetchCategories();
   }, []);
 
-  const handleDelete = (id) => {
-    confirmDialog({
-      message: "Do you want to delete this category?",
-      header: "Delete Confirmation",
-      icon: "pi pi-info-circle",
-      acceptClassName: "p-button-danger",
-      accept: async () => {
-        try {
-          await api.delete(`/category/delete/${id}`);
-          showToast({
-            severity: "success",
-            summary: "Deleted",
-            detail: "Category deleted successfully",
-            life: 3000,
-          });
-          setCategories((prev) =>
-            prev.filter((item) => (item._id || item.id) !== id)
-          );
-        } catch (error) {
-          showToast({
-            severity: "error",
-            summary: "Failed",
-            detail:
-              error.response?.data?.message || "Could not delete category",
-            life: 3000,
-          });
-        }
-      },
-    });
-  };
+//   const handleDelete = (id) => {
+//     confirmDialog({
+//       message: "Do you want to delete this category?",
+//       header: "Delete Confirmation",
+//       icon: "pi pi-info-circle",
+//       acceptClassName: "p-button-danger",
+//       accept: async () => {
+//         try {
+//           await api.delete(`/category/delete/${id}`);
+//           showToast({
+//             severity: "success",
+//             summary: "Deleted",
+//             detail: "Category deleted successfully",
+//             life: 3000,
+//           });
+//           setCategories((prev) =>
+//             prev.filter((item) => (item._id || item.id) !== id)
+//           );
+//         } catch (error) {
+//           showToast({
+//             severity: "error",
+//             summary: "Failed",
+//             detail:
+//               error.response?.data?.message || "Could not delete category",
+//             life: 3000,
+//           });
+//         }
+//       },
+//     });
+//   };
 
-  const formatDate = (dateString) => {
+const handleDelete = (id) => {
+  confirmDialog({
+    message: "Do you want to delete this category?",
+    header: "Delete Confirmation",
+    icon: "pi pi-info-circle",
+    acceptClassName: "p-button-danger",
+    acceptLabel: "Delete",
+    rejectLabel: "Cancel",
+    accept: async () => {
+      try {
+        setDeletingId(id);
+        await api.delete(`/category/delete/${id}`);
+        showToast({
+          severity: "success",
+          summary: "Deleted",
+          detail: "Category deleted successfully",
+          life: 3000,
+        });
+        setCategories((prev) =>
+          prev.filter((item) => (item._id || item.id) !== id)
+        );
+      } catch (error) {
+        showToast({
+          severity: "error",
+          summary: "Failed",
+          detail:
+            error.response?.data?.message || "Could not delete category",
+          life: 3000,
+        });
+      } finally {
+        setDeletingId(null);
+      }
+    },
+  });
+};
+
+const formatDate = (dateString) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
     const day = date.getDate();
@@ -116,6 +154,7 @@ function AllCategories() {
 
   const actionsBodyTemplate = (rowData) => {
     const id = rowData._id || rowData.id;
+    const isDeleting = deletingId === id;
 
     return (
       <div className="flex items-center gap-2">
@@ -126,13 +165,25 @@ function AllCategories() {
         >
           <Pencil size={14} />
         </button>
-        <button
+        {/* <button
           onClick={() => handleDelete(id)}
           className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors"
           title="Delete"
         >
           <Trash2 size={14} />
-        </button>
+        </button> */}
+        <button
+        onClick={() => handleDelete(id)}
+        disabled={isDeleting}
+        className="w-8 h-8 rounded-lg flex items-center justify-center bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25 transition-colors disabled:opacity-50"
+        title="Delete"
+      >
+        {isDeleting ? (
+          <i className="pi pi-spin pi-spinner text-xs" />
+        ) : (
+          <Trash2 size={14} />
+        )}
+      </button>
       </div>
     );
   };
@@ -323,6 +374,8 @@ function AllCategories() {
           padding: 60px 20px !important;
         }
       `}</style>
+
+      <ConfirmDialog />
 
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
