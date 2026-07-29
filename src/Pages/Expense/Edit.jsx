@@ -55,8 +55,8 @@ function EditTransaction() {
         const list = response.data.All_Categories || response.data.categories || [];
         setCategories(
           list.map((cat) => ({
-            label: cat.name || cat.title || cat.category,
-            value: cat._id || cat.id || cat.name,
+            label: cat.name,
+            value: cat._id ,
           }))
         );
       }
@@ -70,7 +70,7 @@ function EditTransaction() {
   const fetchTransaction = async () => {
     try {
       setLoading(true);
-      // Adjust if your endpoint is different, e.g. /expense/get/${id}
+
       const response = await api.get(`/expense/GetExpenseById/${id}`);
 
       const data = response.data.expense || response.data.data || response.data;
@@ -97,15 +97,14 @@ function EditTransaction() {
 
   const onSubmit = async (data) => {
     try {
-      // Adjust if your endpoint is different, e.g. /expense/update/${id}
-      await api.put(`/expense/update/${id}`, {
-        title: data.title,
+      const payload = {
+      title: data.title,
         description: data.description || "",
         amount: data.amount,
-        category: data.category,
-        type: data.type,
-      });
-
+        category_id: data.category,
+        type: data.type, 
+    };
+      await api.put(`/expense/update/${id}`, payload),
       showToast({
         severity: "success",
         summary: "Updated",

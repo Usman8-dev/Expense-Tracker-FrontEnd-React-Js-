@@ -159,6 +159,11 @@ const handleDelete = (id, title) => {
     <span className="text-slate-400 text-sm">{rowData.description || "—"}</span>
   );
 
+    const categoryBodyTemplate = (rowData) => (
+    <span className="text-slate-400 text-sm">{rowData.category_id?.name || "—"}</span>
+  );
+
+
  const actionsBodyTemplate = (rowData) => {
   const id = rowData._id || rowData.id;
   const isDeleting = deletingId === id;
@@ -458,6 +463,13 @@ const handleDelete = (id, title) => {
                   body={titleBodyTemplate}
                   sortable
                   style={{ minWidth: "200px" }}
+                />
+                <Column
+                  field="category_id.name"
+                  header="Category"
+                  body={categoryBodyTemplate}
+                  sortable
+                  style={{ minWidth: "120px" }}
                 />
                 <Column
                   field="date"

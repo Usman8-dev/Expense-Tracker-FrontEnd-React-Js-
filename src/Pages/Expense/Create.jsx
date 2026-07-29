@@ -70,33 +70,34 @@ function CreateTransaction() {
     }
   };
 
-  const onSubmit = async (data) => {
-    try {
-      await api.post("/expense/create", {
-        title: data.title,
-        description: data.description || "",
-        amount: data.amount,
-        category: data.category,
-        type: data.type,
-      });
+const onSubmit = async (data) => {
+  try {
+    const payload = {
+      title: data.title,
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category_id: data.category, 
+    };
 
-      showToast({
-        severity: "success",
-        summary: "Created",
-        detail: `${data.type} added successfully`,
-        life: 3000,
-      });
-      navigate("/dashboard");
-    } catch (error) {
-      showToast({
-        severity: "error",
-        summary: "Failed",
-        detail: error.response?.data?.message || "Could not create transaction",
-        life: 3000,
-      });
-    }
-  };
-
+    await api.post("/expense/create", payload);
+    
+    showToast({
+      severity: "success",
+      summary: "Created",
+      detail: "Expense created successfully!",
+      life: 3000,
+    });
+    navigate("/dashboard");
+  } catch (error) {
+    showToast({
+      severity: "error",
+      summary: "Failed",
+      detail: error.response?.data?.message || "Could not create expense",
+      life: 3000,
+    });
+  }
+};
   const typeOptions = [
     { label: "Income", value: "Income" },
     { label: "Expense", value: "Expense" },
