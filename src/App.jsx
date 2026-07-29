@@ -12,6 +12,7 @@ import Create from "./Pages/Expense/Create";
 import EditTransaction from "./Pages/Expense/Edit";
 import CategoryListing from "./Pages/Category/CategoryListing";
 import CreateCategory from "./Pages/Category/CreateCategory";
+import EditCategory from "./Pages/Category/EditCategory";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
 
                   <Route path="/categories" element={<CategoryListing/>}/>
                   <Route path="/categories/create" element={<CreateCategory/>}/>
+                  <Route path="/categories/edit/:id" element={<EditCategory/>}/>
                 </Route>
               </Routes>
             </ToastProvider>
