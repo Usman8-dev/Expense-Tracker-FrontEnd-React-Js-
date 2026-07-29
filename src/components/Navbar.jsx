@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  LayoutDashboard,
+  ArrowLeftRight,
+  PlusCircle,
+  BarChart3,
+  Tags,
+  User,
+} from "lucide-react";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +28,14 @@ function Navbar() {
     { name: "Transaction", path: "/expenses/create", icon: "💳" },
     { name: "Categories", path: "/categories", icon: "📂" },
     { name: "Reports", path: "/expense/reports", icon: "📈" },
+  ];
+
+  const bottomNavLinks = [
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Transactions", path: "/expenses/all", icon: ArrowLeftRight },
+    { name: "Add", path: "/expenses/create", icon: PlusCircle, isCenter: true },
+    { name: "Reports", path: "/expense/reports", icon: BarChart3 },
+    { name: "Categories", path: "/categories", icon: Tags },
   ];
 
   return (
@@ -233,6 +249,52 @@ function Navbar() {
           onClick={() => setIsOpen(false)}
         />
       )}
+
+      {/* Bottom Navigation - Mobile Only */}
+      <div className="fixed bottom-0 left-0 right-0 md:hidden z-40">
+        <div className="navbar-top border-t border-slate-700/50">
+          <div className="flex items-center justify-around px-2 py-2">
+            {bottomNavLinks.map((link) => {
+              const Icon = link.icon;
+              const active = isActive(link.path);
+
+              if (link.isCenter) {
+                return (
+                  <button
+                    key={link.path}
+                    onClick={() => navigate(link.path)}
+                    className="flex flex-col items-center justify-center -mt-6"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105 transition-all">
+                      <Icon size={26} className="text-white" />
+                    </div>
+                  </button>
+                );
+              }
+
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className="flex flex-col items-center gap-1 px-3 py-1.5 min-w-[60px]"
+                >
+                  <Icon
+                    size={20}
+                    className={active ? "text-emerald-400" : "text-slate-400"}
+                  />
+                  <span
+                    className={`text-[10px] font-medium ${
+                      active ? "text-emerald-400" : "text-slate-500"
+                    }`}
+                  >
+                    {link.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </>
   );
 }
