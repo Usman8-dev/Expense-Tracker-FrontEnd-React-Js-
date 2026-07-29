@@ -10,6 +10,7 @@ import Dashboard from "./Pages/dashboard";
 import AllTransactions from "./Pages/AllTransactions";
 import Create from "./Pages/Expense/Create";
 import EditTransaction from "./Pages/Expense/Edit";
+import CategoryListing from "./Pages/Category/CategoryListing";
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
 
                   <Route path="/expenses/create" element={<Create/>} />
                   <Route path="/expenses/edit/:id" element={<EditTransaction/>} />
+
+                  <Route path="/categories" element={<CategoryListing/>}/>
                 </Route>
               </Routes>
             </ToastProvider>
