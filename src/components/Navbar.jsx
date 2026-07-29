@@ -19,7 +19,7 @@ function Navbar() {
     { name: "Dashboard", path: "/dashboard", icon: "📊" },
     { name: "Transaction", path: "/expenses/create", icon: "💳" },
     { name: "Categories", path: "/categories", icon: "📂" },
-    { name: "Reports", path: "/reports", icon: "📈" },
+    { name: "Reports", path: "/expense/reports", icon: "📈" },
   ];
 
   return (
