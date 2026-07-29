@@ -20,8 +20,8 @@ export const ExpenseSchema = yup.object().shape({
     .max(999999999, "Amount is too large"),
 
   category: yup
-    .string(),
-    // .required("Category is required"),
+    .string()
+    .required("Category is required"),
 
   type: yup
     .string()

@@ -194,6 +194,103 @@ function CreateTransaction() {
         .p-inputnumber .p-inputnumber-input {
           width: 100%;
         }
+/* Dark Dropdown Panel - targets portal-rendered panel */
+.dark-dropdown-panel {
+  background: rgba(15, 23, 42, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(148, 163, 184, 0.15) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
+}
+
+.dark-dropdown-panel .p-dropdown-header {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+  padding: 10px !important;
+}
+
+.dark-dropdown-panel .p-dropdown-filter-container {
+  width: 100% !important;
+}
+
+.dark-dropdown-panel .p-dropdown-filter {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  padding: 10px 40px 10px 14px !important;
+}
+
+.dark-dropdown-panel .p-dropdown-filter::placeholder {
+  color: #64748b !important;
+}
+
+.dark-dropdown-panel .p-dropdown-filter-icon {
+  color: #64748b !important;
+}
+
+.dark-dropdown-panel .p-dropdown-items-wrapper {
+  background: rgba(15, 23, 42, 0.98) !important;
+}
+
+.dark-dropdown-panel .p-dropdown-items {
+  padding: 6px !important;
+}
+
+.dark-dropdown-panel .p-dropdown-item {
+  color: #cbd5e1 !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  background: transparent !important;
+}
+
+.dark-dropdown-panel .p-dropdown-item:hover {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+}
+
+.dark-dropdown-panel .p-dropdown-item.p-highlight {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #10b981 !important;
+}
+
+.dark-dropdown-panel .p-dropdown-empty-message {
+  color: #64748b !important;
+  padding: 16px !important;
+  text-align: center !important;
+  background: transparent !important;
+}
+
+/* Main dropdown trigger box */
+.p-dropdown {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1.5px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 12px !important;
+}
+
+.p-dropdown:not(.p-disabled):hover {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: rgb(16, 185, 129) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+.p-dropdown .p-dropdown-label {
+  color: #ffffff !important;
+  padding: 14px 16px !important;
+}
+
+.p-dropdown .p-dropdown-label.p-placeholder {
+  color: #64748b !important;
+}
+
+.p-dropdown .p-dropdown-trigger {
+  color: #10b981 !important;
+}
       `}</style>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
@@ -319,6 +416,7 @@ function CreateTransaction() {
                       }
                       disabled={loadingCategories || categories.length === 0}
                       className={`w-full ${errors.category ? "!border-red-400" : ""}`}
+                      panelClassName="dark-dropdown-panel"
                       filter
                       filterPlaceholder="Search category..."
                       emptyMessage="No categories available"
