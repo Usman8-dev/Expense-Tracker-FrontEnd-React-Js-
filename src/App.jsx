@@ -11,6 +11,7 @@ import AllTransactions from "./Pages/AllTransactions";
 import Create from "./Pages/Expense/Create";
 import EditTransaction from "./Pages/Expense/Edit";
 import CategoryListing from "./Pages/Category/CategoryListing";
+import CreateCategory from "./Pages/Category/CreateCategory";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                   <Route path="/expenses/edit/:id" element={<EditTransaction/>} />
 
                   <Route path="/categories" element={<CategoryListing/>}/>
+                  <Route path="/categories/create" element={<CreateCategory/>}/>
                 </Route>
               </Routes>
             </ToastProvider>
