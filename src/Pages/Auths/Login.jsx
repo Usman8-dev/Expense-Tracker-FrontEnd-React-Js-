@@ -217,26 +217,6 @@ function Login() {
             </div>
 
             {/* Password Field */}
-            {/* <div className="flex flex-col gap-2.5">
-              <div className="flex justify-between items-center">
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
-                  Password
-                </label>
-              </div>
-              <InputText
-                type="password"
-                placeholder="Enter your password"
-                {...register("password")}
-                className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 text-sm ${
-                  errors.password ? "!border-red-500 !border-opacity-70" : ""
-                }`}
-              />
-              {errors.password && (
-                <small className="error-text text-red-400 text-xs font-medium">
-                  {errors.password.message}
-                </small>
-              )}
-            </div> */}
             <div className="flex flex-col gap-2.5">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">

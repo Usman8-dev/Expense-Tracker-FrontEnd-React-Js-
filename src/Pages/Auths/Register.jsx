@@ -8,11 +8,15 @@ import api from "../../apis/axios";
 import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { useToast } from "../../context/ToastContext";
-
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 function Register() {
   const navigate = useNavigate();
   const showToast = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
 
   const {
     register,
@@ -167,6 +171,20 @@ function Register() {
         .p-toast-message.p-toast-message-warn .p-toast-message-content {
           color: #ffffff !important;
         }
+
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+          display: none;
+        }
+
+        input::-webkit-credentials-auto-fill-button,
+        input::-webkit-strong-password-auto-fill-button {
+          display: none !important;
+          visibility: hidden;
+          pointer-events: none;
+          position: absolute;
+          right: 0;
+        }
       `}</style>
 
       <div className="relative w-full max-w-lg form-container z-10">
@@ -262,14 +280,24 @@ function Register() {
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
                 Password
               </label>
-              <InputText
-                type="password"
-                placeholder="Enter a secure password"
-                {...register("password")}
-                className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 text-sm ${
-                  errors.password ? "!border-red-500 !border-opacity-70" : ""
-                }`}
-              />
+              <div className="relative">
+                <InputText
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter a secure password"
+                  {...register("password")}
+                  className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 !pr-11 text-sm w-full ${
+                    errors.password ? "!border-red-500 !border-opacity-70" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {errors.password && (
                 <small className="error-text text-red-400 text-xs font-medium">
                   {errors.password.message}
@@ -282,21 +310,30 @@ function Register() {
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
                 Confirm Password
               </label>
-              <InputText
-                type="password"
-                placeholder="Confirm your password"
-                {...register("confirmPassword")}
-                className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 text-sm ${
-                  errors.confirmPassword ? "!border-red-500 !border-opacity-70" : ""
-                }`}
-              />
+              <div className="relative">
+                <InputText
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  {...register("confirmPassword")}
+                  className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 !pr-11 text-sm w-full ${
+                    errors.confirmPassword ? "!border-red-500 !border-opacity-70" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <small className="error-text text-red-400 text-xs font-medium">
                   {errors.confirmPassword.message}
                 </small>
               )}
             </div>
-
             {/* Submit Button */}
             <Button
               type="submit"
