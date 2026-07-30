@@ -155,6 +155,21 @@ function Login() {
         .p-toast-message.p-toast-message-error .p-toast-message-content {
           color: #ffffff !important;
         }
+          /* Hide native browser password reveal icon (Edge/IE) */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+          display: none;
+        }
+
+        /* Hide native browser password reveal icon (Chrome) */
+        input::-webkit-credentials-auto-fill-button,
+        input::-webkit-strong-password-auto-fill-button {
+          display: none !important;
+          visibility: hidden;
+          pointer-events: none;
+          position: absolute;
+          right: 0;
+        }
       `}</style>
 
       <div className="relative w-full max-w-lg form-container z-10">
