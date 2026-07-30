@@ -161,7 +161,7 @@ function Login() {
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">₹</span>
+                <span className="text-white font-bold text-lg">Rs.</span>
               </div>
               <span className="text-xs font-semibold tracking-widest text-emerald-400 uppercase">
                 Smart Finance

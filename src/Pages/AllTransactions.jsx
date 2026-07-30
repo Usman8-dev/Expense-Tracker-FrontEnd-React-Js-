@@ -444,7 +444,7 @@ const handleDelete = (id, title) => {
               <DataTable
                 value={expenses}
                 paginator
-                rows={5}
+                rows={10}
                 rowsPerPageOptions={[5, 10, 25]}
                 loading={loading}
                 globalFilterFields={["title", "description", "amount", "type"]}
