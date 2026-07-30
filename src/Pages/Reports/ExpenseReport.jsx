@@ -54,7 +54,7 @@ const handleDownload = async () => {
         endDate: formatDateForApi(endDate),
       },
       {
-        responseType: "blob", 
+        responseType: "blob",
       }
     );
 
@@ -78,17 +78,31 @@ const handleDownload = async () => {
       life: 3000,
     });
   } catch (error) {
+    let errorMessage = "Could not generate report";
+
+    // If the error response is a Blob, parse it back to JSON
+    if (error.response?.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        const parsed = JSON.parse(text);
+        errorMessage = parsed.message || errorMessage;
+      } catch (parseError) {
+        console.error("Failed to parse error blob:", parseError);
+      }
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+
     showToast({
       severity: "error",
       summary: "Failed",
-      detail: error.response?.data?.message || "Could not generate report",
+      detail: errorMessage,
       life: 3000,
     });
   } finally {
     setDownloading(false);
   }
 };
-
   return (
     <>
       <style>{`
