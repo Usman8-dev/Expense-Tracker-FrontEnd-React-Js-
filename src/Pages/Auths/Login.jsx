@@ -8,11 +8,14 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 function Login() {
   const navigate = useNavigate();
   const showToast = useToast();
   const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -199,7 +202,7 @@ function Login() {
             </div>
 
             {/* Password Field */}
-            <div className="flex flex-col gap-2.5">
+            {/* <div className="flex flex-col gap-2.5">
               <div className="flex justify-between items-center">
                 <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
                   Password
@@ -218,8 +221,37 @@ function Login() {
                   {errors.password.message}
                 </small>
               )}
+            </div> */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex justify-between items-center">
+                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wide">
+                  Password
+                </label>
+              </div>
+              <div className="relative">
+                <InputText
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  {...register("password")}
+                  className={`input-field !bg-transparent !text-white placeholder:!text-slate-500 !border !rounded-xl !px-4 !py-3.5 !pr-11 text-sm w-full ${
+                    errors.password ? "!border-red-500 !border-opacity-70" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && (
+                <small className="error-text text-red-400 text-xs font-medium">
+                  {errors.password.message}
+                </small>
+              )}
             </div>
-
             {/* Submit Button */}
             <Button
               type="submit"
