@@ -188,7 +188,7 @@ function Navbar() {
             }}
           >
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">₹</span>
+              <span className="text-white font-bold text-lg">Rs.</span>
             </div>
             <div>
               <h1 className="font-display font-bold text-white text-lg">

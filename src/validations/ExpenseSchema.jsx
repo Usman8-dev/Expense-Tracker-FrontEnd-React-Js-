@@ -27,4 +27,9 @@ export const ExpenseSchema = yup.object().shape({
     .string()
     .oneOf(["Income", "Expense"], "Type must be Income or Expense")
     .required("Type is required"),
+
+  date: yup
+  .date()
+  .required("Date is required")
+  .max(new Date(), "Date cannot be in the future"),
 });

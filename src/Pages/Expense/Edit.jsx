@@ -12,6 +12,7 @@ import { InputNumber } from "primereact/inputnumber";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { ArrowLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { Calendar } from "primereact/calendar";
 
 function EditTransaction() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ function EditTransaction() {
       amount: null,
       category: "",
       type: "Expense",
+      date: new Date(),
     },
   });
 
@@ -81,6 +83,7 @@ function EditTransaction() {
         amount: data.amount ?? null,
         category: data.category?._id || data.category || "",
         type: data.type || "Expense",
+        date: data.date ? new Date(data.date) : new Date(),
       });
     } catch (error) {
       showToast({
@@ -103,8 +106,9 @@ function EditTransaction() {
         amount: data.amount,
         category_id: data.category,
         type: data.type, 
+        date: data.date,
     };
-      await api.put(`/expense/update/${id}`, payload),
+      await api.put(`/expense/update/${id}`, payload);
       showToast({
         severity: "success",
         summary: "Updated",
@@ -224,6 +228,62 @@ function EditTransaction() {
 
         .p-inputnumber { width: 100%; }
         .p-inputnumber .p-inputnumber-input { width: 100%; }
+
+          .p-calendar {
+          width: 100% !important;
+        }
+
+        .p-calendar .p-inputtext {
+          background: rgba(15, 23, 42, 0.7) !important;
+          border: 1px solid rgba(148, 163, 184, 0.2) !important;
+          color: #f1f5f9 !important;
+          border-radius: 12px !important;
+          padding: 0.75rem 1rem !important;
+          width: 100% !important;
+        }
+
+        .p-calendar .p-datepicker-trigger {
+          background: transparent !important;
+          border: none !important;
+          color: #10b981 !important;
+        }
+
+        .p-datepicker {
+          background: #1e293b !important;
+          border: 1px solid rgba(148, 163, 184, 0.2) !important;
+          border-radius: 12px !important;
+          color: #f1f5f9 !important;
+        }
+
+        .p-datepicker .p-datepicker-header {
+          background: transparent !important;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.15) !important;
+          color: #ffffff !important;
+        }
+
+        .p-datepicker .p-datepicker-prev,
+        .p-datepicker .p-datepicker-next {
+          color: #10b981 !important;
+        }
+
+        .p-datepicker table td > span {
+          color: #cbd5e1 !important;
+        }
+
+        .p-datepicker table td > span:hover {
+          background: rgba(16, 185, 129, 0.15) !important;
+          color: #10b981 !important;
+        }
+
+        .p-datepicker table td.p-datepicker-today > span {
+          background: rgba(16, 185, 129, 0.1) !important;
+          color: #10b981 !important;
+        }
+
+        .p-datepicker table td > span.p-highlight {
+          background: linear-gradient(135deg, #10b981, #06b6d4) !important;
+          color: #ffffff !important;
+        }
       `}</style>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
@@ -355,6 +415,30 @@ function EditTransaction() {
                 />
                 {errors.category && (
                   <small className="text-red-400 text-xs">{errors.category.message}</small>
+                )}
+              </div>
+
+              {/* Date */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  Date
+                </label>
+                <Controller
+                  name="date"
+                  control={control}
+                  render={({ field }) => (
+                    <Calendar
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.value)}
+                      dateFormat="dd M, yy"
+                      showIcon
+                      maxDate={new Date()}
+                      className={`w-full ${errors.date ? "!border-red-400" : ""}`}
+                    />
+                  )}
+                />
+                {errors.date && (
+                  <small className="text-red-400 text-xs">{errors.date.message}</small>
                 )}
               </div>
 
