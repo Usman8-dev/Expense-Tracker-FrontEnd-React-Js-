@@ -320,11 +320,11 @@ const formatCurrency = (value) => {
                 paginator={false}
                 className="text-sm"
               >
-                <Column field="title" header="Title" />
-                <Column field="date" header="Date" body={dateTemplate} />
+                <Column field="title" header="Title" style={{ minWidth: "100px", whiteSpace: "nowrap" }} />
                 <Column field="amount" header="Amount" style={{ minWidth: "104px", whiteSpace: "nowrap" }} body={amountTemplate} />
                 <Column field="type" header="Type" body={typeTemplate} />
-                <Column field="description" header="Description" />
+                <Column field="date" header="Date" body={dateTemplate} style={{ whiteSpace: "nowrap" }}/>
+                {/* <Column field="description" header="Description" /> */}
               </DataTable>
             </div>
           ) : (
