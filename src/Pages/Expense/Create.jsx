@@ -501,7 +501,7 @@ const onSubmit = async (data) => {
                       onChange={(e) => field.onChange(e.value)}
                       dateFormat="dd M, yy"
                       showIcon
-                      maxDate={new Date()}
+                      maxDate={new Date(new Date().setHours(23, 59, 59, 999))} // ✅ same fix here
                       className={`w-full ${errors.date ? "!border-red-400" : ""}`}
                     />
                   )}

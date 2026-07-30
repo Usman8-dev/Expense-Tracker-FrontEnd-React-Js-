@@ -25,7 +25,7 @@ function Navbar() {
 
   const navLinks = [
     { name: "Dashboard", path: "/dashboard", icon: "📊" },
-    { name: "Transaction", path: "/expenses/create", icon: "💳" },
+    { name: "Transaction", path: "/expenses/all", icon: "💳" },
     { name: "Categories", path: "/categories", icon: "📂" },
     { name: "Reports", path: "/expense/reports", icon: "📈" },
   ];

@@ -36,7 +36,7 @@ function CreateCategory() {
         detail: "Category created successfully",
         life: 3000,
       });
-      navigate("/categories"); 
+      navigate("/categories");
     } catch (error) {
       showToast({
         severity: "error",
@@ -77,8 +77,8 @@ function CreateCategory() {
         }
 
         .p-inputtext:enabled:focus {
-          border-color: rgba(139, 92, 246, 0.5) !important;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
+          border-color: rgba(16, 185, 129, 0.5) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
         }
 
         .p-inputtext::placeholder {
@@ -90,7 +90,7 @@ function CreateCategory() {
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           <button
             onClick={() => navigate("/categories")}
-            className="flex items-center gap-1.5 text-violet-400 hover:text-violet-300 mb-6 text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 mb-6 text-sm font-medium transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Categories
@@ -98,7 +98,7 @@ function CreateCategory() {
 
           <div className="card-glass rounded-2xl p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-500">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-400 to-teal-500">
                 <FolderKanban size={22} className="text-white" />
               </div>
               <div>
@@ -139,7 +139,7 @@ function CreateCategory() {
                   icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
                   iconPos="right"
                   disabled={isSubmitting}
-                  className="w-2/3 justify-center !rounded-xl !border-0 !font-semibold !text-white !bg-gradient-to-r !from-violet-600 !via-fuchsia-600 !to-orange-500 hover:!shadow-[0_10px_40px_rgba(139,92,246,0.4)] transition-all duration-300"
+                  className="w-2/3 justify-center !rounded-xl !border-0 !font-semibold !text-white !bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300"
                 />
               </div>
             </form>

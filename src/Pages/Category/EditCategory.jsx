@@ -29,18 +29,12 @@ function EditCategory() {
     },
   });
 
-
-
   const fetchCategory = async () => {
     try {
       setLoading(true);
-        // get data through id 
       const response = await api.get(`/category/GetCategoryById/${id}`);
 
-      const data =
-        response.data.category ||
-        response.data.data ||
-        response.data;
+      const data = response.data.category || response.data.data || response.data;
 
       if (!response.data.success && !data?.name) {
         throw new Error(response.data.message || "Category not found");
@@ -53,8 +47,7 @@ function EditCategory() {
       showToast({
         severity: "error",
         summary: "Failed",
-        detail:
-          error.response?.data?.message || "Could not load category",
+        detail: error.response?.data?.message || "Could not load category",
         life: 3000,
       });
       navigate("/categories");
@@ -63,13 +56,12 @@ function EditCategory() {
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     fetchCategory();
   }, [id]);
 
   const onSubmit = async (data) => {
     try {
-      // update data apis hit 
       await api.put(`/category/update/${id}`, {
         name: data.name.trim(),
       });
@@ -85,8 +77,7 @@ function EditCategory() {
       showToast({
         severity: "error",
         summary: "Failed",
-        detail:
-          error.response?.data?.message || "Could not update category",
+        detail: error.response?.data?.message || "Could not update category",
         life: 3000,
       });
     }
@@ -96,7 +87,7 @@ function EditCategory() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto" />
           <p className="text-slate-400 mt-4">Loading category...</p>
         </div>
       </div>
@@ -133,8 +124,8 @@ function EditCategory() {
         }
 
         .p-inputtext:enabled:focus {
-          border-color: rgba(139, 92, 246, 0.5) !important;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12) !important;
+          border-color: rgba(16, 185, 129, 0.5) !important;
+          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12) !important;
         }
 
         .p-inputtext::placeholder {
@@ -146,7 +137,7 @@ function EditCategory() {
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           <button
             onClick={() => navigate("/categories")}
-            className="flex items-center gap-1.5 text-violet-400 hover:text-violet-300 mb-6 text-sm font-medium transition-colors"
+            className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 mb-6 text-sm font-medium transition-colors"
           >
             <ArrowLeft size={16} />
             Back to Categories
@@ -154,7 +145,7 @@ function EditCategory() {
 
           <div className="card-glass rounded-2xl p-6 sm:p-8">
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-violet-500 to-fuchsia-500">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-emerald-400 to-teal-500">
                 <FolderKanban size={22} className="text-white" />
               </div>
               <div>
@@ -197,7 +188,7 @@ function EditCategory() {
                   icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
                   iconPos="right"
                   disabled={isSubmitting}
-                  className="w-2/3 justify-center !rounded-xl !border-0 !font-semibold !text-white !bg-gradient-to-r !from-violet-600 !via-fuchsia-600 !to-orange-500 hover:!shadow-[0_10px_40px_rgba(139,92,246,0.4)] transition-all duration-300"
+                  className="w-2/3 justify-center !rounded-xl !border-0 !font-semibold !text-white !bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300"
                 />
               </div>
             </form>
