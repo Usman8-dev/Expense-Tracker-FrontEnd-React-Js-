@@ -73,10 +73,21 @@ const formatCurrency = (value) => {
     maximumFractionDigits: 0,
   }).format(value || 0)}`;
 };
+    const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "long" });
+    const year = date.getFullYear();
+    return `${day} ${month}, ${year}`;
+  };
 
   const dateTemplate = (rowData) => {
-    return new Date(rowData.date).toLocaleDateString("en-PK");
+    // return new Date(rowData.date).toLocaleDateString("en-PK");
+     return formatDate(rowData.date);
+
   };
+
+
 
   const amountTemplate = (rowData) => {
     return (
