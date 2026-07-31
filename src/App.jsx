@@ -14,35 +14,44 @@ import CategoryListing from "./Pages/Category/CategoryListing";
 import CreateCategory from "./Pages/Category/CreateCategory";
 import EditCategory from "./Pages/Category/EditCategory";
 import ExpenseReport from "./Pages/Reports/ExpenseReport";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <div>
       <BrowserRouter>
         <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/register" element={<Register />} />
+              <Route path="/" element={<Login />} />
 
-            <ToastProvider>
-              <Routes>
-                <Route path="/register" element={<Register/>} />
-                <Route path="/" element={<Login/>} />
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                {/* <Route element={<Layout />}> */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/expenses/all" element={<AllTransactions />} />
 
-                <Route element={<Layout />}>
-                  <Route path="/dashboard" element={<Dashboard/>} />
-                  <Route path="/expenses/all" element={<AllTransactions/>} />
+                <Route path="/expenses/create" element={<Create />} />
+                <Route
+                  path="/expenses/edit/:id"
+                  element={<EditTransaction />}
+                />
 
-                  <Route path="/expenses/create" element={<Create/>} />
-                  <Route path="/expenses/edit/:id" element={<EditTransaction/>} />
+                <Route path="/categories" element={<CategoryListing />} />
+                <Route path="/categories/create" element={<CreateCategory />} />
+                <Route path="/categories/edit/:id" element={<EditCategory />} />
 
-                  <Route path="/categories" element={<CategoryListing/>}/>
-                  <Route path="/categories/create" element={<CreateCategory/>}/>
-                  <Route path="/categories/edit/:id" element={<EditCategory/>}/>
-
-                  {/* Report  */}
-                  <Route path="/expense/reports" element={<ExpenseReport/>}/>
-                </Route>
-              </Routes>
-            </ToastProvider>
-
+                {/* Report  */}
+                <Route path="/expense/reports" element={<ExpenseReport />} />
+              </Route>
+            </Routes>
+          </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>
