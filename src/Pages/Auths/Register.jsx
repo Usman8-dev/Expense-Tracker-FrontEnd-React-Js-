@@ -21,7 +21,7 @@ function Register() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting  },
   } = useForm({
     resolver: yupResolver(RegisterSchema),
   });
@@ -335,10 +335,18 @@ function Register() {
               )}
             </div>
             {/* Submit Button */}
-            <Button
+            {/* <Button
               type="submit"
               label="Create Account"
               className="submit-btn w-full !rounded-xl !border-0 !py-3.5 !font-semibold !text-base !text-white bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300 !mt-2 uppercase tracking-wider"
+            /> */}
+            <Button
+              type="submit"
+              label={isSubmitting ? "Creating Account..." : "Create Account"}
+              icon={isSubmitting ? "pi pi-spin pi-spinner" : undefined}
+              iconPos="right"
+              disabled={isSubmitting}
+              className="submit-btn w-full !rounded-xl !border-0 !py-3.5 !font-semibold !text-base !text-white bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300 !mt-2 uppercase tracking-wider disabled:opacity-70"
             />
           </form>
 
