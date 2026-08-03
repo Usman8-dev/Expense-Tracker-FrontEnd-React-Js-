@@ -30,9 +30,9 @@ export const ExpenseSchema = yup.object().shape({
 
   date: yup
   .date()
-  .required("Date is required")
-  .max(
-    new Date(new Date().setHours(23, 59, 59, 999)), 
-    "Date cannot be in the future"
-  ),
+  .required("Date is required"),
+  // .max(
+  //   new Date(new Date().setHours(23, 59, 59, 999)), 
+  //   "Date cannot be in the future"
+  // ),
 });

@@ -488,7 +488,7 @@ const onSubmit = async (data) => {
               </div>
 
               {/* Date */}
-              <div className="flex flex-col gap-2">
+             <div className="flex flex-col gap-2">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Date
                 </label>
@@ -501,7 +501,6 @@ const onSubmit = async (data) => {
                       onChange={(e) => field.onChange(e.value)}
                       dateFormat="dd M, yy"
                       showIcon
-                      maxDate={new Date(new Date().setHours(23, 59, 59, 999))} // ✅ same fix here
                       className={`w-full ${errors.date ? "!border-red-400" : ""}`}
                     />
                   )}
