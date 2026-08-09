@@ -9,13 +9,24 @@ import { Button } from "primereact/button";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Login() {
   const navigate = useNavigate();
   const showToast = useToast();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [wakeUpTimer, setWakeUpTimer] = useState(null);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (wakeUpTimer) {
+        clearTimeout(wakeUpTimer);
+      }
+    };
+  }, [wakeUpTimer]);
 
   const {
     register,
@@ -26,8 +37,19 @@ function Login() {
   });
 
   const onSubmit = async (data) => {
+    // Show "waking up server" message if request takes more than 3 seconds
+    // (indicates Render cold start is happening)
+    const timer = setTimeout(() => {
+      setIsWakingUp(true);
+    }, 3000);
+    setWakeUpTimer(timer);
+
     try {
       const res = await api.post("/user/login", data);
+
+      clearTimeout(timer);
+      setWakeUpTimer(null);
+      setIsWakingUp(false);
 
       login(res.data.user, res.data.token);
 
@@ -42,6 +64,10 @@ function Login() {
         navigate("/dashboard");
       }, 1000);
     } catch (error) {
+      clearTimeout(timer);
+      setWakeUpTimer(null);
+      setIsWakingUp(false);
+
       showToast({
         severity: "error",
         summary: "Login Failed",
@@ -248,11 +274,6 @@ function Login() {
               )}
             </div>
             {/* Submit Button */}
-            {/* <Button
-              type="submit"
-              label="Sign In"
-              className="submit-btn w-full !rounded-xl !border-0 !py-3.5 !font-semibold !text-base !text-white bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300 !mt-2 uppercase tracking-wider"
-            /> */}
             <Button
                 type="submit"
                 label={isSubmitting ? "Signing in..." : "Sign In"}
@@ -261,6 +282,14 @@ function Login() {
                 disabled={isSubmitting}
                 className="submit-btn w-full !rounded-xl !border-0 !py-3.5 !font-semibold !text-base !text-white bg-gradient-to-r !from-emerald-500 !via-teal-500 !to-cyan-500 hover:!shadow-[0_10px_40px_rgba(16,185,129,0.4)] transition-all duration-300 !mt-2 uppercase tracking-wider disabled:opacity-70"
               />
+
+            {/* Waking up server message - shown during Render cold start */}
+            {isWakingUp && (
+              <div className="flex items-center justify-center gap-2 mt-3 text-amber-400 text-sm font-medium animate-pulse">
+                <i className="pi pi-spin pi-spinner text-base"></i>
+                <span>Waking up server... This may take a few seconds on first login</span>
+              </div>
+            )}
           </form>
 
           {/* Divider */}
