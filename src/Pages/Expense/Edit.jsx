@@ -432,7 +432,6 @@ function EditTransaction() {
                       onChange={(e) => field.onChange(e.value)}
                       dateFormat="dd M, yy"
                       showIcon
-                      // maxDate={new Date()}
                       className={`w-full ${errors.date ? "!border-red-400" : ""}`}
                     />
                   )}

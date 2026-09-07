@@ -488,7 +488,7 @@ const onSubmit = async (data) => {
               </div>
 
               {/* Date */}
-             <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
                   Date
                 </label>
