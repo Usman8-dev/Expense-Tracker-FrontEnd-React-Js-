@@ -102,11 +102,17 @@ const handleDelete = (id, title) => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "—";
     const date = new Date(dateString);
     const day = date.getDate();
     const month = date.toLocaleString("en-US", { month: "long" });
     const year = date.getFullYear();
-    return `${day} ${month}, ${year}`;
+    const time = date.toLocaleString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${day} ${month}, ${year} at ${time}`;
   };
 
   const titleBodyTemplate = (rowData) => (
