@@ -33,17 +33,30 @@ function Dashboard() {
         const allExpenses = response.data.All_Expenses || [];
         setExpenses(allExpenses);
 
-        // Extract stats from the FIRST expense (most recent - sorted by date -1)
-        if (allExpenses.length > 0) {
-          const firstExpense = allExpenses[0];
-          console.log("Stats from first expense:", firstExpense);
+        // Compute totals from the full list so back-dated transactions
+        // (added after later ones) are always reflected in the stats.
 
-          setStats({
-            total_balance: firstExpense.total_balance || 0,
-            total_income: firstExpense.total_income || 0,
-            total_expense: firstExpense.total_expense || 0,
-          });
-        }
+        let total_income = 0;
+        let total_expense = 0;
+
+        allExpenses.forEach((exp) => {
+          const amount = Number(exp.amount) || 0;
+          const type = (exp.type || "").toLowerCase();
+
+          if (type === "income") {
+            total_income += amount;
+          } else if (type === "expense") {
+            total_expense += amount;
+          }
+        });
+
+        const total_balance = total_income - total_expense;
+
+        setStats({
+          total_balance,
+          total_income,
+          total_expense,
+        });
       } else {
         showToast({
           severity: "error",
