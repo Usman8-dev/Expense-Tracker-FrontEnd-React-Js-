@@ -24,6 +24,17 @@ function Reports() {
   };
 
 const handleDownload = async () => {
+  // Excel is rendered on the server - no connection, no report.
+  if (!navigator.onLine) {
+    showToast({
+      severity: "warn",
+      summary: "You're offline",
+      detail: "Reports need an internet connection. We'll be ready when you're back.",
+      life: 3500,
+    });
+    return;
+  }
+
   if (!startDate || !endDate) {
     showToast({
       severity: "warn",

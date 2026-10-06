@@ -24,6 +24,13 @@ function Dashboard() {
     fetchExpenses();
   }, []);
 
+  // Offline changes just landed on the server: drop the "pending" badges.
+  useEffect(() => {
+    const refetch = () => fetchExpenses();
+    window.addEventListener("expenseflow:synced", refetch);
+    return () => window.removeEventListener("expenseflow:synced", refetch);
+  }, []);
+
   const fetchExpenses = async () => {
     try {
       setLoading(true);

@@ -56,6 +56,13 @@ function AllCategories() {
     fetchCategories();
   }, []);
 
+  // Offline changes just landed on the server: refresh to clear pending rows.
+  useEffect(() => {
+    const refetch = () => fetchCategories();
+    window.addEventListener("expenseflow:synced", refetch);
+    return () => window.removeEventListener("expenseflow:synced", refetch);
+  }, []);
+
   const handleDelete = (id) => {
     confirmDialog({
       message: "Do you want to delete this category?",

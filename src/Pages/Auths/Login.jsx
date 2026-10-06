@@ -37,6 +37,17 @@ function Login() {
   });
 
   const onSubmit = async (data) => {
+    // Auth is always online: there is no offline session to restore.
+    if (!navigator.onLine) {
+      showToast({
+        severity: "warn",
+        summary: "You're offline",
+        detail: "Connect to the internet to sign in.",
+        life: 3500,
+      });
+      return;
+    }
+
     // Show "waking up server" message if request takes more than 3 seconds
     // (indicates Render cold start is happening)
     const timer = setTimeout(() => {

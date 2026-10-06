@@ -48,6 +48,13 @@ function AllTransactions() {
     fetchExpenses();
   }, []);
 
+  // Offline changes just landed on the server: refresh to clear pending rows.
+  useEffect(() => {
+    const refetch = () => fetchExpenses();
+    window.addEventListener("expenseflow:synced", refetch);
+    return () => window.removeEventListener("expenseflow:synced", refetch);
+  }, []);
+
   const fetchExpenses = async () => {
     try {
       setLoading(true);
@@ -160,6 +167,14 @@ const handleDelete = (id, title) => {
         )}
       </div>
       <span className="font-semibold text-white text-sm">{rowData.title}</span>
+      {rowData.__pending && (
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30"
+          title="Saved offline - it will sync automatically"
+        >
+          ⏳ Pending
+        </span>
+      )}
     </div>
   );
 

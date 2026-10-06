@@ -10,6 +10,9 @@ export function warmupBackend() {
   const apiUrl = import.meta.env.VITE_API_URL;
   if (!apiUrl) return;
 
+  // No point pinging while offline - the SW is serving cached data anyway.
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
+
   // Check if we've warmed up recently to avoid unnecessary requests
   const lastWarmup = localStorage.getItem(WARMUP_KEY);
   const now = Date.now();

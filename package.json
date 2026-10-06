@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:offline": "node scripts/offline-queue.smoke.mjs",
+    "icons": "powershell -ExecutionPolicy Bypass -File scripts/generate-icons.ps1",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -34,6 +36,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
-    "vite": "^8.1.1"
+    "sharp": "^0.35.5",
+    "vite": "^8.1.1",
+    "vite-plugin-pwa": "^2.0.0"
   }
 }

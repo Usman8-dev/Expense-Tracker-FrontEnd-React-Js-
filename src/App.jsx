@@ -15,6 +15,8 @@ import CreateCategory from "./Pages/Category/CreateCategory";
 import EditCategory from "./Pages/Category/EditCategory";
 import ExpenseReport from "./Pages/Reports/ExpenseReport";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ConnectivityProvider } from "./context/ConnectivityContext";
+import PwaUpdatePrompt from "./components/PwaUpdatePrompt";
 
 function App() {
   return (
@@ -22,35 +24,44 @@ function App() {
       <BrowserRouter>
         <AuthProvider>
           <ToastProvider>
-            <Routes>
-              <Route path="/register" element={<Register />} />
-              <Route path="/" element={<Login />} />
+            <ConnectivityProvider>
+              <Routes>
+                <Route path="/register" element={<Register />} />
+                <Route path="/" element={<Login />} />
 
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }
-              >
-                {/* <Route element={<Layout />}> */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/expenses/all" element={<AllTransactions />} />
-
-                <Route path="/expenses/create" element={<Create />} />
                 <Route
-                  path="/expenses/edit/:id"
-                  element={<EditTransaction />}
-                />
+                  element={
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  }
+                >
+                  {/* <Route element={<Layout />}> */}
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/expenses/all" element={<AllTransactions />} />
 
-                <Route path="/categories" element={<CategoryListing />} />
-                <Route path="/categories/create" element={<CreateCategory />} />
-                <Route path="/categories/edit/:id" element={<EditCategory />} />
+                  <Route path="/expenses/create" element={<Create />} />
+                  <Route
+                    path="/expenses/edit/:id"
+                    element={<EditTransaction />}
+                  />
 
-                {/* Report  */}
-                <Route path="/expense/reports" element={<ExpenseReport />} />
-              </Route>
-            </Routes>
+                  <Route path="/categories" element={<CategoryListing />} />
+                  <Route
+                    path="/categories/create"
+                    element={<CreateCategory />}
+                  />
+                  <Route
+                    path="/categories/edit/:id"
+                    element={<EditCategory />}
+                  />
+
+                  {/* Report  */}
+                  <Route path="/expense/reports" element={<ExpenseReport />} />
+                </Route>
+              </Routes>
+              <PwaUpdatePrompt />
+            </ConnectivityProvider>
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
