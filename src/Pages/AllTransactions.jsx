@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -29,6 +29,20 @@ function AllTransactions() {
   const [loading, setLoading] = useState(true);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+
+  // Multi-select (bulk delete) state
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectionActive, setSelectionActive] = useState(false); // turned on by long-press on mobile
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 767px)").matches;
+  });
+
+  // Long-press helpers
+  const pressTimerRef = useRef(null);
+  const pressStartRef = useRef(null);
+  const longPressFiredRef = useRef(false);
 
   useEffect(() => {
     fetchExpenses();
@@ -61,6 +75,18 @@ function AllTransactions() {
     }
   };
 
+  // Keep the mobile/desktop flag in sync.
+  // Phones (<768px) hide the checkboxes until a long-press, tablet/laptop always show them.
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const handleChange = (event) => {
+      setIsMobile(event.matches);
+      if (!event.matches) setSelectionActive(false);
+    };
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
 const handleDelete = (id, title) => {
   confirmDialog({
     message: `Do you want to delete this transaction?`,
@@ -81,6 +107,9 @@ const handleDelete = (id, title) => {
         });
         setExpenses((prev) =>
           prev.filter((item) => (item._id || item.id) !== id)
+        );
+        setSelectedRows((prev) =>
+          prev.filter((row) => (row._id || row.id) !== id)
         );
       } catch (error) {
         showToast({
@@ -200,6 +229,194 @@ const handleDelete = (id, title) => {
   );
 };
 
+  const clearLongPress = useCallback(() => {
+    if (pressTimerRef.current) {
+      clearTimeout(pressTimerRef.current);
+      pressTimerRef.current = null;
+    }
+    pressStartRef.current = null;
+    if (typeof document !== "undefined") {
+      document.body.style.userSelect = "";
+      document.body.style.webkitUserSelect = "";
+    }
+  }, []);
+
+  // Cancel a pending long-press when the user scrolls or moves their finger.
+  useEffect(() => {
+    const handleMove = (event) => {
+      if (!pressTimerRef.current || !pressStartRef.current) return;
+      const point =
+        event.touches && event.touches[0] ? event.touches[0] : event;
+      const dx = Math.abs(point.clientX - pressStartRef.current.x);
+      const dy = Math.abs(point.clientY - pressStartRef.current.y);
+      if (dx > 12 || dy > 12) clearLongPress();
+    };
+    const handleRelease = () => clearLongPress();
+
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleRelease);
+    window.addEventListener("touchend", handleRelease);
+    window.addEventListener("touchcancel", handleRelease);
+    window.addEventListener("pointercancel", handleRelease);
+    window.addEventListener("scroll", handleRelease, true);
+    return () => {
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleRelease);
+      window.removeEventListener("touchend", handleRelease);
+      window.removeEventListener("touchcancel", handleRelease);
+      window.removeEventListener("pointercancel", handleRelease);
+      window.removeEventListener("scroll", handleRelease, true);
+      clearLongPress();
+    };
+  }, [clearLongPress]);
+
+  // Long-press a row (mobile only) to enter selection mode and select it.
+  const handleRowPointerDown = (event) => {
+    if (!isMobile) return; // On tablet/laptop the checkboxes are always visible
+    const row = event.data;
+    if (!row) return;
+
+    clearLongPress();
+    longPressFiredRef.current = false;
+
+    const originalEvent = event.originalEvent;
+    pressStartRef.current = {
+      x: originalEvent?.clientX ?? 0,
+      y: originalEvent?.clientY ?? 0,
+    };
+    if (typeof document !== "undefined") {
+      document.body.style.userSelect = "none";
+      document.body.style.webkitUserSelect = "none";
+    }
+
+    pressTimerRef.current = setTimeout(() => {
+      pressTimerRef.current = null;
+      longPressFiredRef.current = true;
+
+      const id = row._id || row.id;
+      setSelectedRows((prev) =>
+        prev.some((item) => (item._id || item.id) === id)
+          ? prev
+          : [...prev, row]
+      );
+      setSelectionActive(true);
+
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        try {
+          navigator.vibrate(20);
+        } catch {
+          // ignore browsers that don't support vibration
+        }
+      }
+    }, 500);
+  };
+
+  const handleRowPointerUp = () => {
+    clearLongPress();
+  };
+
+  // Swallow the "ghost" click browsers fire after a long press so it doesn't
+  // immediately toggle the row we just selected.
+  const handleTableClickCapture = (event) => {
+    if (!longPressFiredRef.current) return;
+
+    const target = event.target;
+    const isControl =
+      target instanceof Element &&
+      (["INPUT", "TEXTAREA", "BUTTON", "A"].includes(target.nodeName) ||
+        target.closest("button, a, input, textarea, .p-checkbox, .p-button"));
+
+    if (!isControl) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    longPressFiredRef.current = false;
+  };
+
+  const handleContextMenu = (event) => {
+    if (isMobile) event.preventDefault();
+  };
+
+  const cancelSelection = () => {
+    setSelectedRows([]);
+    setSelectionActive(false);
+    longPressFiredRef.current = false;
+  };
+
+  const handleBulkDelete = () => {
+    const ids = selectedRows.map((row) => row._id || row.id);
+    if (ids.length === 0) return;
+
+    confirmDialog({
+      message: `Do you want to delete ${ids.length} selected transaction${
+        ids.length !== 1 ? "s" : ""
+      }?`,
+      header: "Delete Confirmation",
+      icon: "pi pi-info-circle",
+      acceptClassName: "p-button-danger",
+      acceptLabel: "Delete",
+      rejectLabel: "Cancel",
+      accept: async () => {
+        try {
+          setBulkDeleting(true);
+          const results = await Promise.allSettled(
+            ids.map((id) => api.delete(`/expense/delete/${id}`))
+          );
+          const deletedIds = ids.filter(
+            (_, index) => results[index].status === "fulfilled"
+          );
+          const failedCount = ids.length - deletedIds.length;
+
+          if (deletedIds.length > 0) {
+            setExpenses((prev) =>
+              prev.filter((item) => !deletedIds.includes(item._id || item.id))
+            );
+            setSelectedRows((prev) =>
+              prev.filter((row) => !deletedIds.includes(row._id || row.id))
+            );
+          }
+
+          if (failedCount === 0) {
+            setSelectedRows([]);
+            setSelectionActive(false);
+            showToast({
+              severity: "success",
+              summary: "Deleted",
+              detail: `${deletedIds.length} transaction${
+                deletedIds.length !== 1 ? "s" : ""
+              } deleted successfully`,
+              life: 3000,
+            });
+          } else {
+            showToast({
+              severity: "error",
+              summary: "Partial failure",
+              detail: `${deletedIds.length} deleted, ${failedCount} failed`,
+              life: 3000,
+            });
+          }
+        } catch (error) {
+          showToast({
+            severity: "error",
+            summary: "Failed",
+            detail:
+              error.response?.data?.message || "Could not delete transactions",
+            life: 3000,
+          });
+        } finally {
+          setBulkDeleting(false);
+        }
+      },
+    });
+  };
+
+  // Checkboxes: always visible on tablet/laptop, revealed by long-press on phones
+  const showCheckboxes = !isMobile || selectionActive;
+  const showBulkBar =
+    showCheckboxes && (selectedRows.length > 0 || selectionActive);
+
   const onGlobalFilterChange = (e) => {
     setGlobalFilterValue(e.target.value);
   };
@@ -207,11 +424,23 @@ const handleDelete = (id, title) => {
   const renderHeader = () => {
     return (
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
-        <div className="flex items-center gap-2">
-          <Receipt size={18} className="text-emerald-400" />
-          <span className="text-white text-sm font-semibold">
-            {expenses.length} Transaction{expenses.length !== 1 ? "s" : ""}
-          </span>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Receipt size={18} className="text-emerald-400" />
+            <span className="text-white text-sm font-semibold">
+              {expenses.length} Transaction{expenses.length !== 1 ? "s" : ""}
+            </span>
+            {showCheckboxes && selectedRows.length > 0 && (
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                {selectedRows.length} selected
+              </span>
+            )}
+          </div>
+          {isMobile && !selectionActive && expenses.length > 0 && (
+            <span className="text-[11px] text-slate-500">
+              Long-press a transaction to select &amp; delete
+            </span>
+          )}
         </div>
         <div className="relative w-full sm:w-80">
           <Search
@@ -296,6 +525,43 @@ const handleDelete = (id, title) => {
         
         .p-datatable .p-datatable-tbody > tr:hover {
           background: rgba(16, 185, 129, 0.06) !important;
+        }
+
+        /* Multi-select (checkboxes) */
+        .p-datatable .p-datatable-tbody > tr.p-highlight,
+        .p-datatable .p-datatable-tbody > tr[data-p-highlight="true"] {
+          background: rgba(16, 185, 129, 0.14) !important;
+        }
+
+        .p-datatable .p-checkbox .p-checkbox-box {
+          background: rgba(30, 41, 59, 0.9) !important;
+          border-color: rgba(148, 163, 184, 0.35) !important;
+          border-radius: 6px !important;
+          width: 1.2rem !important;
+          height: 1.2rem !important;
+        }
+
+        .p-datatable .p-checkbox .p-checkbox-box.p-highlight {
+          background: linear-gradient(135deg, #10b981, #06b6d4) !important;
+          border-color: #10b981 !important;
+        }
+
+        .p-datatable
+          .p-checkbox:not(.p-checkbox-disabled):not(.p-checkbox-checked):hover
+          .p-checkbox-box {
+          border-color: #10b981 !important;
+        }
+
+        .p-datatable .p-checkbox .p-checkbox-box .p-checkbox-icon {
+          color: #ffffff !important;
+          font-size: 0.7rem !important;
+        }
+
+        .p-datatable th[data-p-selection-column],
+        .p-datatable td[data-p-selection-column] {
+          text-align: center;
+          padding-left: 8px !important;
+          padding-right: 8px !important;
         }
 
         .p-datatable .p-sortable-column .p-sortable-column-icon {
@@ -447,73 +713,119 @@ const handleDelete = (id, title) => {
                 </p>
               </div>
             ) : (
-              <DataTable
-                value={expenses}
-                paginator
-                rows={10}
-                rowsPerPageOptions={[5, 10, 25]}
-                loading={loading}
-                globalFilterFields={["title", "description", "amount", "type"]}
-                globalFilter={globalFilterValue}
-                header={renderHeader()}
-                responsiveLayout="scroll"
-                emptyMessage="No transactions found"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-                rowClassName={(_, options) =>
-                  options.rowIndex % 2 === 1 ? "p-row-odd" : ""
-                }
+              <div
+                onClickCapture={handleTableClickCapture}
+                onContextMenu={handleContextMenu}
               >
-                <Column
-                  field="title"
-                  header="Title"
-                  body={titleBodyTemplate}
-                  sortable
-                  style={{ minWidth: "200px" }}
-                />
-                <Column
-                  field="category_id.name"
-                  header="Category"
-                  body={categoryBodyTemplate}
-                  sortable
-                  style={{ minWidth: "120px" }}
-                />
-                <Column
-                  field="date"
-                  header="Date"
-                  body={dateBodyTemplate}
-                  sortable
-                  style={{ minWidth: "150px" }}
-                />
-                <Column
-                  field="amount"
-                  header="Amount"
-                  body={amountBodyTemplate}
-                  sortable
-                  style={{ minWidth: "140px" }}
-                />
-                <Column
-                  field="type"
-                  header="Type"
-                  body={typeBodyTemplate}
-                  sortable
-                  style={{ minWidth: "110px" }}
-                />
-                <Column
-                  field="description"
-                  header="Description"
-                  body={descriptionBodyTemplate}
-                  style={{ minWidth: "180px" }}
-                />
-                <Column
-                  header="Actions"
-                  body={actionsBodyTemplate}
-                  style={{ minWidth: "120px" }}
-                  frozen
-                  alignFrozen="right"
-                />
-              </DataTable>
+                <DataTable
+                  value={expenses}
+                  selection={selectedRows}
+                  onSelectionChange={(e) => setSelectedRows(e.value)}
+                  selectionAutoFocus={false}
+                  onRowPointerDown={handleRowPointerDown}
+                  onRowPointerUp={handleRowPointerUp}
+                  paginator
+                  rows={10}
+                  rowsPerPageOptions={[5, 10, 25]}
+                  loading={loading}
+                  globalFilterFields={["title", "description", "amount", "type"]}
+                  globalFilter={globalFilterValue}
+                  header={renderHeader()}
+                  responsiveLayout="scroll"
+                  emptyMessage="No transactions found"
+                  currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                  rowClassName={(_, options) =>
+                    options.rowIndex % 2 === 1 ? "p-row-odd" : ""
+                  }
+                >
+                  {showCheckboxes && (
+                    <Column
+                      selectionMode="multiple"
+                      headerStyle={{ width: "56px" }}
+                      bodyStyle={{ width: "56px" }}
+                    />
+                  )}
+                  <Column
+                    field="title"
+                    header="Title"
+                    body={titleBodyTemplate}
+                    sortable
+                    style={{ minWidth: "200px" }}
+                  />
+                  <Column
+                    field="category_id.name"
+                    header="Category"
+                    body={categoryBodyTemplate}
+                    sortable
+                    style={{ minWidth: "120px" }}
+                  />
+                  <Column
+                    field="date"
+                    header="Date"
+                    body={dateBodyTemplate}
+                    sortable
+                    style={{ minWidth: "150px" }}
+                  />
+                  <Column
+                    field="amount"
+                    header="Amount"
+                    body={amountBodyTemplate}
+                    sortable
+                    style={{ minWidth: "140px" }}
+                  />
+                  <Column
+                    field="type"
+                    header="Type"
+                    body={typeBodyTemplate}
+                    sortable
+                    style={{ minWidth: "110px" }}
+                  />
+                  <Column
+                    field="description"
+                    header="Description"
+                    body={descriptionBodyTemplate}
+                    style={{ minWidth: "180px" }}
+                  />
+                  <Column
+                    header="Actions"
+                    body={actionsBodyTemplate}
+                    style={{ minWidth: "120px" }}
+                    frozen
+                    alignFrozen="right"
+                  />
+                </DataTable>
+              </div>
             )}
           </div>
+
+          {/* Bulk delete bar (multi-select) */}
+          {showBulkBar && (
+            <div className="fixed left-1/2 -translate-x-1/2 bottom-24 md:bottom-8 z-50 w-[calc(100%-2rem)] md:w-auto max-w-md flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-emerald-500/30 bg-slate-900/95 backdrop-blur-xl shadow-2xl">
+              <span className="text-sm font-semibold text-white whitespace-nowrap">
+                {selectedRows.length} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={cancelSelection}
+                  className="px-3 py-2 rounded-xl text-sm font-medium text-slate-300 border border-slate-600/60 hover:bg-slate-800 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={selectedRows.length === 0 || bulkDeleting}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-br from-red-500 to-orange-500 hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {bulkDeleting ? (
+                    <i className="pi pi-spin pi-spinner text-xs" />
+                  ) : (
+                    <Trash2 size={14} />
+                  )}
+                  Delete ({selectedRows.length})
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>
