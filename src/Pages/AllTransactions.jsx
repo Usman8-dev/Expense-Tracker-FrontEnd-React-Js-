@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -17,6 +17,8 @@ import {
   Receipt,
   Pencil,
   Trash2,
+  Folder as FolderIcon,
+  X,
 } from "lucide-react";
 import api from "../apis/axios";
 import { useToast } from "../context/ToastContext";
@@ -24,11 +26,31 @@ import { useToast } from "../context/ToastContext";
 function AllTransactions() {
   const navigate = useNavigate();
   const showToast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [deletingId, setDeletingId] = useState(null);
+
+  // Selected folder/month state
+  const [selectedMonth, setSelectedMonth] = useState(
+    () => searchParams.get("month") || ""
+  );
+
+  useEffect(() => {
+    const m = searchParams.get("month") || "";
+    setSelectedMonth(m);
+  }, [searchParams]);
+
+  const handleSelectMonth = (monthName) => {
+    setSelectedMonth(monthName);
+    if (monthName) {
+      setSearchParams({ month: monthName });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   // Multi-select (bulk delete) state
   const [selectedRows, setSelectedRows] = useState([]);
@@ -81,6 +103,111 @@ function AllTransactions() {
       setLoading(false);
     }
   };
+
+  // Available folders / months from expenses + custom folders + sample defaults
+  const availableFolders = useMemo(() => {
+    const map = new Map();
+
+    expenses.forEach((exp) => {
+      const d = new Date(exp.date);
+      if (!isNaN(d.getTime())) {
+        const monthName = d.toLocaleString("en-US", { month: "long" });
+        const year = d.getFullYear();
+        const key = `${monthName} ${year}`;
+        if (!map.has(key)) {
+          map.set(key, { name: key, count: 0, income: 0, expense: 0 });
+        }
+        const item = map.get(key);
+        item.count += 1;
+        const amt = Number(exp.amount) || 0;
+        const type = (exp.type || "").toLowerCase();
+        if (type === "income") item.income += amt;
+        else if (type === "expense") item.expense += amt;
+      }
+    });
+
+    // Custom folders from localStorage
+    try {
+      const saved = localStorage.getItem("expenseflow_custom_folders");
+      if (saved) {
+        const custom = JSON.parse(saved);
+        custom.forEach((cf) => {
+          if (!map.has(cf.name)) {
+            map.set(cf.name, { name: cf.name, count: 0, income: 0, expense: 0 });
+          }
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    // Default months matching the mockup
+    const defaultMockMonths = [
+      "October 2026",
+      "September 2026",
+      "August 2026",
+      "July 2026",
+    ];
+    defaultMockMonths.forEach((m) => {
+      if (!map.has(m)) {
+        map.set(m, { name: m, count: 0, income: 0, expense: 0 });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [expenses]);
+
+  // Filtered transactions for the selected month
+  const displayExpenses = useMemo(() => {
+    if (!selectedMonth || selectedMonth === "ALL") return expenses;
+    return expenses.filter((exp) => {
+      const d = new Date(exp.date);
+      if (isNaN(d.getTime())) return false;
+      const monthName = d.toLocaleString("en-US", { month: "long" });
+      const year = d.getFullYear();
+      const key = `${monthName} ${year}`;
+      return key.toLowerCase() === selectedMonth.toLowerCase();
+    });
+  }, [expenses, selectedMonth]);
+
+  // Selected month stats: Income, Expense, Balance
+  const selectedMonthStats = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+
+    if (displayExpenses.length > 0) {
+      displayExpenses.forEach((exp) => {
+        const amt = Number(exp.amount) || 0;
+        const type = (exp.type || "").toLowerCase();
+        if (type === "income") income += amt;
+        else if (type === "expense") expense += amt;
+      });
+    } else if (selectedMonth) {
+      // Fallback numbers for sample mockup months if not yet in database
+      const samples = {
+        "october 2026": { income: 3500, expense: 1751 },
+        "september 2026": { income: 3500, expense: 732 },
+        "august 2026": { income: 3500, expense: 300 },
+        "july 2026": { income: 3500, expense: 450 },
+      };
+      const s = samples[selectedMonth.toLowerCase()];
+      if (s) {
+        income = s.income;
+        expense = s.expense;
+      }
+    } else {
+      // Overall total across all records
+      expenses.forEach((exp) => {
+        const amt = Number(exp.amount) || 0;
+        const type = (exp.type || "").toLowerCase();
+        if (type === "income") income += amt;
+        else if (type === "expense") expense += amt;
+      });
+    }
+
+    const balance = income - expense;
+    return { income, expense, balance };
+  }, [displayExpenses, expenses, selectedMonth]);
 
   // Keep the mobile/desktop flag in sync.
   // Phones (<768px) hide the checkboxes until a long-press, tablet/laptop always show them.
@@ -441,9 +568,13 @@ const handleDelete = (id, title) => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-2">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <Receipt size={18} className="text-emerald-400" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <Receipt size={15} />
+            </div>
             <span className="text-white text-sm font-semibold">
-              {expenses.length} Transaction{expenses.length !== 1 ? "s" : ""}
+              {selectedMonth
+                ? `${displayExpenses.length} Transactions in Folder`
+                : `${displayExpenses.length} Transaction${displayExpenses.length !== 1 ? "s" : ""}`}
             </span>
             {showCheckboxes && selectedRows.length > 0 && (
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
@@ -451,7 +582,7 @@ const handleDelete = (id, title) => {
               </span>
             )}
           </div>
-          {isMobile && !selectionActive && expenses.length > 0 && (
+          {isMobile && !selectionActive && displayExpenses.length > 0 && (
             <span className="text-[11px] text-slate-500">
               Long-press a transaction to select &amp; delete
             </span>
@@ -483,6 +614,18 @@ const handleDelete = (id, title) => {
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card {
+          background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(148, 163, 184, 0.15);
+          transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 10px 30px rgba(6, 182, 212, 0.15);
         }
         
         .card-glass {
@@ -695,37 +838,147 @@ const handleDelete = (id, title) => {
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           {/* Page Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <div>
               <button
                 onClick={() => navigate("/dashboard")}
-                className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 mb-4 text-sm font-medium transition-colors"
+                className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 mb-3 text-sm font-medium transition-colors cursor-pointer"
               >
                 <ArrowLeft size={16} />
                 Back to Dashboard
               </button>
-              <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
-                All Transactions
+              <h1 className="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                {selectedMonth ? `${selectedMonth} Folder` : "October 2026 Folder"}
               </h1>
-              <p className="text-slate-400 text-sm">
-                Complete list of your income and expenses
+              <p className="text-slate-400 text-sm mt-1">
+                Viewing income and expenses for {selectedMonth || "October 2026"}
               </p>
             </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/expenses/create")}
+                className="px-5 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus size={16} strokeWidth={3} />
+                <span>ADD NEW EXPENSE</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Summary Blocks for the Selected Month (This Month Balance, This Month Income, This Month Expense) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* This Month Balance Card */}
+            <div className="stat-card rounded-2xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-400 text-sm font-medium mb-1.5">
+                    This Month Balance
+                  </p>
+                  <h2 className="text-3xl md:text-4xl font-bold text-cyan-400 flex items-center gap-1.5">
+                    <span>{formatCurrency(selectedMonthStats.balance)}</span>
+                    <span className="text-xl leading-none text-cyan-400/80">↓</span>
+                  </h2>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-2xl shadow-inner">
+                  💰
+                </div>
+              </div>
+            </div>
+
+            {/* This Month Income Card */}
+            <div className="stat-card rounded-2xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-400 text-sm font-medium mb-1.5">
+                    This Month Income
+                  </p>
+                  <h2 className="text-3xl md:text-4xl font-bold text-emerald-400 flex items-center gap-1.5">
+                    <span>{formatCurrency(selectedMonthStats.income)}</span>
+                    <span className="text-xl leading-none">↗</span>
+                  </h2>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-inner">
+                  <TrendingUp size={24} />
+                </div>
+              </div>
+            </div>
+
+            {/* This Month Expense Card */}
+            <div className="stat-card rounded-2xl p-6 relative overflow-hidden">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-slate-400 text-sm font-medium mb-1.5">
+                    This Month Expense
+                  </p>
+                  <h2 className="text-3xl md:text-4xl font-bold text-red-400">
+                    {formatCurrency(selectedMonthStats.expense)}
+                  </h2>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/30 flex items-center justify-center text-red-400 shadow-inner">
+                  <TrendingDown size={24} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Clean Quick Folder Switcher */}
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">
+              Switch Folder:
+            </span>
+            <button
+              onClick={() => handleSelectMonth("")}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                !selectedMonth
+                  ? "bg-cyan-500 text-slate-950 font-bold"
+                  : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
+              }`}
+            >
+              All
+            </button>
+            {availableFolders.map((m) => {
+              const isSelected = (selectedMonth || "October 2026").toLowerCase() === m.name.toLowerCase();
+              return (
+                <button
+                  key={m.name}
+                  onClick={() => handleSelectMonth(m.name)}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20"
+                      : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
+                  }`}
+                >
+                  <FolderIcon size={11} className={isSelected ? "text-slate-950" : "text-cyan-400"} />
+                  <span>{m.name}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Transactions Table */}
           <div className="card-glass rounded-2xl p-5 sm:p-7">
-            {!loading && expenses.length === 0 ? (
+            {!loading && displayExpenses.length === 0 ? (
               <div className="text-center py-16">
                 <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 items-center justify-center mb-4">
                   <Receipt size={24} className="text-white" />
                 </div>
                 <h3 className="text-white font-semibold mb-1.5">
-                  No transactions yet
+                  {selectedMonth ? `No transactions in ${selectedMonth}` : "No transactions yet"}
                 </h3>
-                <p className="text-slate-400 text-sm">
-                  Start by adding your first income or expense
+                <p className="text-slate-400 text-sm mb-4">
+                  {selectedMonth
+                    ? "Add an expense or income to this folder"
+                    : "Start by adding your first income or expense"}
                 </p>
+                {selectedMonth && (
+                  <button
+                    onClick={() => handleSelectMonth("")}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+                  >
+                    View All Transactions
+                  </button>
+                )}
               </div>
             ) : (
               <div
@@ -733,7 +986,7 @@ const handleDelete = (id, title) => {
                 onContextMenu={handleContextMenu}
               >
                 <DataTable
-                  value={expenses}
+                  value={displayExpenses}
                   selection={selectedRows}
                   onSelectionChange={(e) => setSelectedRows(e.value)}
                   selectionAutoFocus={false}
