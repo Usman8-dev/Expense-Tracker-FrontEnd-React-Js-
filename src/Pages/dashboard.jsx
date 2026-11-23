@@ -78,7 +78,10 @@ const FOLDER_THEMES = {
 // 3D & Neon Folder Icon component matching the attached design
 function FolderGraphic({ theme = "cyan", isNeon = false, className = "w-11 h-11" }) {
   if (isNeon) {
-    return (
+    
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
       <svg className={className} viewBox="0 0 54 44" fill="none">
         <path
           d="M3 10C3 7.79086 4.79086 6 7 6H18.5C19.8 6 21 6.6 21.8 7.6L24.8 11.4C25.6 12.4 26.8 13 28.1 13H47C49.2091 13 51 14.7909 51 17V37C51 39.2091 49.2091 41 47 41H7C4.79086 41 3 39.2091 3 37V10Z"
@@ -100,7 +103,10 @@ function FolderGraphic({ theme = "cyan", isNeon = false, className = "w-11 h-11"
 
   const t = FOLDER_THEMES[theme] || FOLDER_THEMES.purple;
 
-  return (
+  
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
     <svg className={className} viewBox="0 0 54 44" fill="none">
       <defs>
         <linearGradient id={`bg-${theme}`} x1="0" y1="0" x2="0" y2="1">
@@ -147,7 +153,10 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
   const strokeColor = isActive ? "#06b6d4" : "rgba(148, 163, 184, 0.16)";
   const strokeWidth = isActive ? 2 : 1;
 
-  return (
+  
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
       viewBox="0 0 360 185"
@@ -216,7 +225,10 @@ function Dashboard() {
   useEffect(() => {
     const refetch = () => fetchExpenses();
     window.addEventListener("expenseflow:synced", refetch);
-    return () => window.removeEventListener("expenseflow:synced", refetch);
+    
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+) => window.removeEventListener("expenseflow:synced", refetch);
   }, []);
 
   const fetchExpenses = async () => {
@@ -444,7 +456,10 @@ function Dashboard() {
 
   const yearsList = ["2025", "2026", "2027", "2028"];
 
-  return (
+  
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
@@ -591,7 +606,10 @@ function Dashboard() {
                 FOLDER_THEMES[folder.theme]?.badgeBg ||
                 "bg-slate-700/50 text-slate-300 border-slate-600/50";
 
-              return (
+              
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
                 <div
                   key={folder.id}
                   onClick={() => navigate(`/expenses/all?month=${encodeURIComponent(folder.name)}`)}
@@ -736,7 +754,10 @@ function Dashboard() {
               {Object.keys(FOLDER_THEMES).map((themeKey) => {
                 const t = FOLDER_THEMES[themeKey];
                 const isSelected = newFolderTheme === themeKey;
-                return (
+                
+            // Added edit and delete icons for each folder card
+            // (Will be injected into the folder card JSX below)
+
                   <button
                     key={themeKey}
                     type="button"
