@@ -215,6 +215,16 @@ function Dashboard() {
   const [newFolderYear, setNewFolderYear] = useState("2026");
   const [newFolderTheme, setNewFolderTheme] = useState("cyan");
 
+  // Edit folder states
+  const [showEditFolderDialog, setShowEditFolderDialog] = useState(false);
+  const [editFolderId, setEditFolderId] = useState(null);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editFolderTheme, setEditFolderTheme] = useState("cyan");
+  const [newFolderName, setNewFolderName] = useState("");
+  const [newFolderMonth, setNewFolderMonth] = useState("November");
+  const [newFolderYear, setNewFolderYear] = useState("2026");
+  const [newFolderTheme, setNewFolderTheme] = useState("cyan");
+
   const [selectedFolderDetails, setSelectedFolderDetails] = useState(null);
 
   useEffect(() => {
