@@ -19,6 +19,7 @@ import {
   Trash2,
   Folder as FolderIcon,
   X,
+  Plus,
 } from "lucide-react";
 import api from "../apis/axios";
 import { useToast } from "../context/ToastContext";
@@ -958,54 +959,41 @@ const handleDelete = (id, title) => {
 
           {/* Transactions Table */}
           <div className="card-glass rounded-2xl p-5 sm:p-7">
-            {!loading && displayExpenses.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="inline-flex w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 items-center justify-center mb-4">
-                  <Receipt size={24} className="text-white" />
-                </div>
-                <h3 className="text-white font-semibold mb-1.5">
-                  {selectedMonth ? `No transactions in ${selectedMonth}` : "No transactions yet"}
-                </h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  {selectedMonth
-                    ? "Add an expense or income to this folder"
-                    : "Start by adding your first income or expense"}
-                </p>
-                {selectedMonth && (
-                  <button
-                    onClick={() => handleSelectMonth("")}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-400 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
-                  >
-                    View All Transactions
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div
-                onClickCapture={handleTableClickCapture}
-                onContextMenu={handleContextMenu}
+            <div
+              onClickCapture={handleTableClickCapture}
+              onContextMenu={handleContextMenu}
+            >
+              <DataTable
+                value={displayExpenses}
+                selection={selectedRows}
+                onSelectionChange={(e) => setSelectedRows(e.value)}
+                selectionAutoFocus={false}
+                onRowPointerDown={handleRowPointerDown}
+                onRowPointerUp={handleRowPointerUp}
+                paginator={displayExpenses.length > 5}
+                rows={10}
+                rowsPerPageOptions={[5, 10, 25]}
+                loading={loading}
+                globalFilterFields={["title", "description", "amount", "type"]}
+                globalFilter={globalFilterValue}
+                header={renderHeader()}
+                responsiveLayout="scroll"
+                emptyMessage={
+                  <div className="text-center py-10">
+                    <Receipt size={32} className="mx-auto text-slate-600 mb-2" />
+                    <p className="text-slate-300 font-semibold text-sm">
+                      No transactions found in {selectedMonth || "this view"}
+                    </p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      Click "+ ADD NEW EXPENSE" above to record your first transaction
+                    </p>
+                  </div>
+                }
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
+                rowClassName={(_, options) =>
+                  options.rowIndex % 2 === 1 ? "p-row-odd" : ""
+                }
               >
-                <DataTable
-                  value={displayExpenses}
-                  selection={selectedRows}
-                  onSelectionChange={(e) => setSelectedRows(e.value)}
-                  selectionAutoFocus={false}
-                  onRowPointerDown={handleRowPointerDown}
-                  onRowPointerUp={handleRowPointerUp}
-                  paginator
-                  rows={10}
-                  rowsPerPageOptions={[5, 10, 25]}
-                  loading={loading}
-                  globalFilterFields={["title", "description", "amount", "type"]}
-                  globalFilter={globalFilterValue}
-                  header={renderHeader()}
-                  responsiveLayout="scroll"
-                  emptyMessage="No transactions found"
-                  currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
-                  rowClassName={(_, options) =>
-                    options.rowIndex % 2 === 1 ? "p-row-odd" : ""
-                  }
-                >
                   {showCheckboxes && (
                     <Column
                       selectionMode="multiple"
@@ -1063,7 +1051,6 @@ const handleDelete = (id, title) => {
                   />
                 </DataTable>
               </div>
-            )}
           </div>
 
           {/* Bulk delete bar (multi-select) */}
