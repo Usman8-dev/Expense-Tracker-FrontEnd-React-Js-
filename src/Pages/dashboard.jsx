@@ -277,158 +277,106 @@ function Dashboard() {
     return `${day} ${month}, ${year}`;
   };
 
-  // Group transactions by Month and Year
-  const monthlyFolders = useMemo(() => {
-    const map = new Map();
+  // ONLY User-created custom folders (no system auto-built or mock folders)
+  const userFolders = useMemo(() => {
+    return customFolders.map((cf) => {
+      const folderTitle = (cf.name || "").trim();
+      const targetLower = folderTitle.toLowerCase();
 
-    expenses.forEach((exp) => {
-      const d = new Date(exp.date);
-      const monthName = !isNaN(d)
-        ? d.toLocaleString("en-US", { month: "long" })
-        : "Other";
-      const year = !isNaN(d) ? d.getFullYear() : 2026;
-      const key = `${monthName} ${year}`;
+      // Find matching expenses for this custom folder
+      const matchingExpenses = expenses.filter((exp) => {
+        if (exp.folder && exp.folder.trim().toLowerCase() === targetLower) {
+          return true;
+        }
+        if (exp.date) {
+          const d = new Date(exp.date);
+          if (!isNaN(d.getTime())) {
+            const mName = d.toLocaleString("en-US", { month: "long" }).toLowerCase();
+            const yStr = String(d.getFullYear());
+            if (`${mName} ${yStr}` === targetLower) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
 
-      if (!map.has(key)) {
-        map.set(key, {
-          id: key,
-          name: key,
-          monthName,
-          year,
-          theme: "cyan",
-          transactions: [],
-          totalIncome: 0,
-          totalExpense: 0,
-        });
-      }
+      let totalIncome = 0;
+      let totalExpense = 0;
 
-      const item = map.get(key);
-      const amount = Number(exp.amount) || 0;
-      const type = (exp.type || "").toLowerCase();
+      matchingExpenses.forEach((exp) => {
+        const amt = Number(exp.amount) || 0;
+        const type = (exp.type || "").toLowerCase();
+        if (type === "income") totalIncome += amt;
+        else if (type === "expense") totalExpense += amt;
+      });
 
-      item.transactions.push(exp);
-      if (type === "income") {
-        item.totalIncome += amount;
-      } else if (type === "expense") {
-        item.totalExpense += amount;
-      }
-    });
-
-    // Merge custom folders
-    customFolders.forEach((cf) => {
-      const key = cf.name;
-      if (!map.has(key)) {
-        map.set(key, {
-          id: cf.id || key,
-          name: key,
-          monthName: cf.monthName || key,
-          year: cf.year || 2026,
-          theme: cf.theme || "cyan",
-          transactions: [],
-          totalIncome: 0,
-          totalExpense: 0,
-          isCustom: true,
-        });
-      } else {
-        const item = map.get(key);
-        if (cf.theme) item.theme = cf.theme;
-      }
-    });
-
-    // Default reference folders matching the screenshot mockup if data is sparse
-    const defaultReferenceFolders = [
-      {
-        id: "October 2026",
-        name: "October 2026",
-        theme: "cyan",
-        isNeon: true,
-        sampleIncome: 3500,
-        sampleExpense: 1751,
-        sampleCount: 15,
-      },
-      {
-        id: "September 2026",
-        name: "September 2026",
-        theme: "purple",
-        sampleIncome: 3500,
-        sampleExpense: 732,
-        sampleCount: 12,
-      },
-      {
-        id: "August 2026",
-        name: "August 2026",
-        theme: "amber",
-        sampleIncome: 3500,
-        sampleExpense: 300,
-        sampleCount: 13,
-      },
-      {
-        id: "July 2026",
-        name: "July 2026",
-        theme: "purple",
-        sampleIncome: 3500,
-        sampleExpense: 450,
-        sampleCount: 16,
-      },
-    ];
-
-    // If database has months, use real months; otherwise blend default reference months
-    defaultReferenceFolders.forEach((df) => {
-      if (!map.has(df.id)) {
-        map.set(df.id, {
-          id: df.id,
-          name: df.name,
-          monthName: df.name.split(" ")[0],
-          year: df.name.split(" ")[1] || 2026,
-          theme: df.theme,
-          isNeon: df.isNeon,
-          transactions: [],
-          totalIncome: df.sampleIncome,
-          totalExpense: df.sampleExpense,
-          transactionCount: df.sampleCount,
-          isDefaultMock: true,
-        });
-      } else {
-        const existing = map.get(df.id);
-        existing.theme = df.theme;
-        if (df.isNeon) existing.isNeon = true;
-      }
-    });
-
-    const folderList = Array.from(map.values()).map((folder) => {
-      const count = folder.transactions.length || folder.transactionCount || 0;
-      const balance = folder.totalIncome - folder.totalExpense;
       return {
-        ...folder,
-        count,
-        balance,
+        id: cf._id || cf.id || folderTitle,
+        _id: cf._id || cf.id,
+        name: folderTitle,
+        monthName: cf.month || cf.monthName,
+        year: cf.year,
+        theme: cf.theme || "cyan",
+        count: matchingExpenses.length,
+        totalIncome,
+        totalExpense,
+        balance: totalIncome - totalExpense,
+        transactions: matchingExpenses,
       };
     });
-
-    return folderList;
   }, [expenses, customFolders]);
 
   // Set default active folder if not chosen
   useEffect(() => {
-    if (!activeFolderKey && monthlyFolders.length > 0) {
-      // Pick October 2026 if present (to match the screenshot) or the first folder
-      const defaultActive =
-        monthlyFolders.find((f) => f.id === "October 2026") || monthlyFolders[0];
-      setActiveFolderKey(defaultActive?.id);
+    if (!activeFolderKey && userFolders.length > 0) {
+      setActiveFolderKey(userFolders[0]?.id);
     }
-  }, [monthlyFolders, activeFolderKey]);
+  }, [userFolders, activeFolderKey]);
 
   // Active folder data
   const currentActiveFolder = useMemo(() => {
-    return (
-      monthlyFolders.find((f) => f.id === activeFolderKey) ||
-      monthlyFolders[0] || {
-        totalIncome: 3500,
-        totalExpense: 1751,
-        balance: 1749,
+    if (activeFolderKey) {
+      const found = userFolders.find(
+        (f) => f.id === activeFolderKey || f.name.toLowerCase() === String(activeFolderKey).toLowerCase()
+      );
+      if (found) return found;
+    }
+
+    if (userFolders.length > 0) {
+      return userFolders[0];
+    }
+
+    // When no custom folders exist yet, calculate current month totals from expenses
+    const now = new Date();
+    const curMonth = now.getMonth();
+    const curYear = now.getFullYear();
+
+    let income = 0;
+    let expense = 0;
+
+    expenses.forEach((exp) => {
+      const d = exp.date ? new Date(exp.date) : null;
+      if (d && !isNaN(d.getTime()) && d.getMonth() === curMonth && d.getFullYear() === curYear) {
+        const amt = Number(exp.amount) || 0;
+        if ((exp.type || "").toLowerCase() === "income") income += amt;
+        else if ((exp.type || "").toLowerCase() === "expense") expense += amt;
       }
-    );
-  }, [monthlyFolders, activeFolderKey]);
+    });
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    return {
+      name: `${monthNames[curMonth]} ${curYear}`,
+      totalIncome: income,
+      totalExpense: expense,
+      balance: income - expense,
+      count: 0,
+    };
+  }, [userFolders, activeFolderKey, expenses]);
 
   // Handle creating a new folder
   const handleCreateFolder = async () => {
@@ -611,64 +559,34 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Monthly Folders Section */}
+        {/* Folders Section */}
         <div>
-          <div className="mb-5">
-            <h2 className="font-display text-2xl font-bold text-white tracking-tight">
-              Monthly Folders
-            </h2>
-            <p className="text-slate-300 font-semibold text-base mt-0.5">
-              Folders
-            </p>
-          </div>
-
-          {/* Folders Grid matching screenshot */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Top-Left Action Folder Card (as shown in image with folder icon, 15 Transactions, and + Add Expense) */}
-            <div
-              onClick={() => navigate("/expenses/all?month=October 2026")}
-              className="relative group min-h-[190px] cursor-pointer transition-all duration-300 hover:-translate-y-1"
-            >
-              <FolderCardBackground isActive={activeFolderKey === "October 2026"} theme="cyan" />
-
-              <div className="relative z-10 p-5 pt-8 flex flex-col justify-between h-full">
-                {/* Top Badge */}
-                <div className="flex justify-end items-center">
-                  <span className="px-3 py-0.5 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
-                    15 Transactions
-                  </span>
-                </div>
-
-                {/* Body Content */}
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-3">
-                    <FolderGraphic isNeon={true} theme="cyan" className="w-14 h-12" />
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate("/expenses/create");
-                    }}
-                    className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 text-sm font-semibold tracking-wide hover:underline cursor-pointer py-1 px-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20 transition-colors"
-                  >
-                    <Plus size={14} strokeWidth={2.5} />
-                    <span>Add Expense</span>
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-700/30">
-                  <span>Click to open folder</span>
-                  <span className="text-cyan-400 font-medium group-hover:underline flex items-center gap-1">
-                    October 2026 ↗
-                  </span>
-                </div>
-              </div>
+          <div className="mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <h2 className="font-display text-2xl font-bold text-white tracking-tight">
+                Folders
+              </h2>
+              <p className="text-slate-400 text-sm mt-0.5">
+                {userFolders.length > 0
+                  ? `Your custom folders (${userFolders.length})`
+                  : "No folders created yet. Click '+ CREATE FOLDER' to create one."}
+              </p>
             </div>
 
-            {/* Render Other Monthly Folders */}
-            {monthlyFolders.map((folder) => {
-              const isActive = activeFolderKey === folder.id;
+            <button
+              onClick={() => setShowCreateFolderDialog(true)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-lg shadow-cyan-500/20 active:scale-95"
+            >
+              <Plus size={15} strokeWidth={3} />
+              <span>+ CREATE FOLDER</span>
+            </button>
+          </div>
+
+          {/* Folders Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Render ONLY user-created custom folders */}
+            {userFolders.map((folder) => {
+              const isActive = activeFolderKey === folder.id || activeFolderKey === folder.name;
               const badgeClass =
                 FOLDER_THEMES[folder.theme]?.badgeBg ||
                 "bg-slate-700/50 text-slate-300 border-slate-600/50";
@@ -687,7 +605,7 @@ function Dashboard() {
                       <div className="flex items-center gap-3">
                         <FolderGraphic
                           theme={folder.theme}
-                          isNeon={folder.isNeon && isActive}
+                          isNeon={folder.theme === "cyan"}
                           className="w-11 h-10 shrink-0"
                         />
                         <div>
@@ -734,14 +652,7 @@ function Dashboard() {
               );
             })}
 
-            {/* Dotted Placeholder Card for Archive / Extra month as seen in image */}
-            <div className="relative rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 p-5 flex flex-col justify-center items-center text-center min-h-[190px] text-slate-500">
-              <Calendar size={28} className="mb-2 opacity-40 text-slate-400" />
-              <p className="text-slate-400 text-sm font-semibold">July 2026</p>
-              <p className="text-slate-600 text-xs mt-1">Archived Records</p>
-            </div>
-
-            {/* Add New Folder Card (matching the image) */}
+            {/* Add New Folder Card */}
             <div
               onClick={() => setShowCreateFolderDialog(true)}
               className="relative rounded-2xl border-2 border-dashed border-slate-700/90 hover:border-cyan-400/80 bg-slate-900/40 hover:bg-slate-800/50 p-6 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 group min-h-[190px]"

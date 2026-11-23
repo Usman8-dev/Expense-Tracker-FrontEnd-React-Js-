@@ -34,6 +34,16 @@ function AllTransactions() {
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
+  // Custom user-created folders state
+  const [customFolders, setCustomFolders] = useState(() => {
+    try {
+      const saved = localStorage.getItem("expenseflow_custom_folders");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Selected folder/month state
   const [selectedMonth, setSelectedMonth] = useState(
     () => searchParams.get("month") || ""
@@ -81,17 +91,38 @@ function AllTransactions() {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/expense/AllExpense");
+      const [expenseRes, folderRes] = await Promise.allSettled([
+        api.get("/expense/AllExpense"),
+        api.get("/expense/folder/all"),
+      ]);
 
-      if (response.data.success) {
-        setExpenses(response.data.All_Expenses || []);
-      } else {
+      if (expenseRes.status === "fulfilled" && expenseRes.value.data.success) {
+        setExpenses(expenseRes.value.data.All_Expenses || []);
+      } else if (expenseRes.status === "rejected") {
         showToast({
           severity: "error",
           summary: "Failed",
-          detail: response.data.message || "Could not load transactions",
+          detail: expenseRes.reason?.response?.data?.message || "Could not load transactions",
           life: 3000,
         });
+      }
+
+      if (folderRes.status === "fulfilled" && folderRes.value.data.success) {
+        const serverFolders = folderRes.value.data.folders || [];
+        if (serverFolders.length > 0) {
+          setCustomFolders((prev) => {
+            const map = new Map();
+            prev.forEach((f) => map.set(f.name, f));
+            serverFolders.forEach((f) => map.set(f.name, f));
+            const merged = Array.from(map.values());
+            try {
+              localStorage.setItem("expenseflow_custom_folders", JSON.stringify(merged));
+            } catch (e) {
+              console.error(e);
+            }
+            return merged;
+          });
+        }
       }
     } catch (error) {
       showToast({
@@ -105,110 +136,66 @@ function AllTransactions() {
     }
   };
 
-  // Available folders / months from expenses + custom folders + sample defaults
+  // ONLY user-created custom folders (no system auto-built or mock folders)
   const availableFolders = useMemo(() => {
-    const map = new Map();
+    return customFolders.map((cf) => {
+      const folderTitle = (cf.name || "").trim();
+      const targetLower = folderTitle.toLowerCase();
 
-    expenses.forEach((exp) => {
-      const d = new Date(exp.date);
-      if (!isNaN(d.getTime())) {
-        const monthName = d.toLocaleString("en-US", { month: "long" });
-        const year = d.getFullYear();
-        const key = `${monthName} ${year}`;
-        if (!map.has(key)) {
-          map.set(key, { name: key, count: 0, income: 0, expense: 0 });
-        }
-        const item = map.get(key);
-        item.count += 1;
-        const amt = Number(exp.amount) || 0;
-        const type = (exp.type || "").toLowerCase();
-        if (type === "income") item.income += amt;
-        else if (type === "expense") item.expense += amt;
-      }
-    });
-
-    // Custom folders from localStorage
-    try {
-      const saved = localStorage.getItem("expenseflow_custom_folders");
-      if (saved) {
-        const custom = JSON.parse(saved);
-        custom.forEach((cf) => {
-          if (!map.has(cf.name)) {
-            map.set(cf.name, { name: cf.name, count: 0, income: 0, expense: 0 });
+      const matching = expenses.filter((exp) => {
+        if (exp.folder && exp.folder.trim().toLowerCase() === targetLower) return true;
+        if (exp.date) {
+          const d = new Date(exp.date);
+          if (!isNaN(d.getTime())) {
+            const mName = d.toLocaleString("en-US", { month: "long" }).toLowerCase();
+            const yStr = String(d.getFullYear());
+            if (`${mName} ${yStr}` === targetLower) return true;
           }
-        });
-      }
-    } catch (e) {
-      console.error(e);
-    }
+        }
+        return false;
+      });
 
-    // Default months matching the mockup
-    const defaultMockMonths = [
-      "October 2026",
-      "September 2026",
-      "August 2026",
-      "July 2026",
-    ];
-    defaultMockMonths.forEach((m) => {
-      if (!map.has(m)) {
-        map.set(m, { name: m, count: 0, income: 0, expense: 0 });
-      }
+      return {
+        id: cf._id || cf.id || folderTitle,
+        name: folderTitle,
+        count: matching.length,
+      };
     });
+  }, [expenses, customFolders]);
 
-    return Array.from(map.values());
-  }, [expenses]);
-
-  // Filtered transactions for the selected month
+  // Filtered transactions for the selected custom folder
   const displayExpenses = useMemo(() => {
     if (!selectedMonth || selectedMonth === "ALL") return expenses;
+    const targetLower = selectedMonth.trim().toLowerCase();
     return expenses.filter((exp) => {
-      const d = new Date(exp.date);
-      if (isNaN(d.getTime())) return false;
-      const monthName = d.toLocaleString("en-US", { month: "long" });
-      const year = d.getFullYear();
-      const key = `${monthName} ${year}`;
-      return key.toLowerCase() === selectedMonth.toLowerCase();
+      if (exp.folder && exp.folder.trim().toLowerCase() === targetLower) return true;
+      if (exp.date) {
+        const d = new Date(exp.date);
+        if (!isNaN(d.getTime())) {
+          const mName = d.toLocaleString("en-US", { month: "long" }).toLowerCase();
+          const yStr = String(d.getFullYear());
+          if (`${mName} ${yStr}` === targetLower) return true;
+        }
+      }
+      return false;
     });
   }, [expenses, selectedMonth]);
 
-  // Selected month stats: Income, Expense, Balance
+  // Selected folder real stats: Income, Expense, Balance
   const selectedMonthStats = useMemo(() => {
     let income = 0;
     let expense = 0;
 
-    if (displayExpenses.length > 0) {
-      displayExpenses.forEach((exp) => {
-        const amt = Number(exp.amount) || 0;
-        const type = (exp.type || "").toLowerCase();
-        if (type === "income") income += amt;
-        else if (type === "expense") expense += amt;
-      });
-    } else if (selectedMonth) {
-      // Fallback numbers for sample mockup months if not yet in database
-      const samples = {
-        "october 2026": { income: 3500, expense: 1751 },
-        "september 2026": { income: 3500, expense: 732 },
-        "august 2026": { income: 3500, expense: 300 },
-        "july 2026": { income: 3500, expense: 450 },
-      };
-      const s = samples[selectedMonth.toLowerCase()];
-      if (s) {
-        income = s.income;
-        expense = s.expense;
-      }
-    } else {
-      // Overall total across all records
-      expenses.forEach((exp) => {
-        const amt = Number(exp.amount) || 0;
-        const type = (exp.type || "").toLowerCase();
-        if (type === "income") income += amt;
-        else if (type === "expense") expense += amt;
-      });
-    }
+    displayExpenses.forEach((exp) => {
+      const amt = Number(exp.amount) || 0;
+      const type = (exp.type || "").toLowerCase();
+      if (type === "income") income += amt;
+      else if (type === "expense") expense += amt;
+    });
 
     const balance = income - expense;
     return { income, expense, balance };
-  }, [displayExpenses, expenses, selectedMonth]);
+  }, [displayExpenses]);
 
   // Keep the mobile/desktop flag in sync.
   // Phones (<768px) hide the checkboxes until a long-press, tablet/laptop always show them.
@@ -849,10 +836,12 @@ const handleDelete = (id, title) => {
                 Back to Dashboard
               </button>
               <h1 className="font-display text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                {selectedMonth ? `${selectedMonth} Folder` : "October 2026 Folder"}
+                {selectedMonth ? `${selectedMonth} Folder` : "All Transactions"}
               </h1>
               <p className="text-slate-400 text-sm mt-1">
-                Viewing income and expenses for {selectedMonth || "October 2026"}
+                {selectedMonth
+                  ? `Viewing income and expenses for ${selectedMonth}`
+                  : "Complete list of your income and expenses"}
               </p>
             </div>
 
@@ -924,38 +913,40 @@ const handleDelete = (id, title) => {
           </div>
 
           {/* Clean Quick Folder Switcher */}
-          <div className="flex flex-wrap items-center gap-2 mb-6">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">
-              Switch Folder:
-            </span>
-            <button
-              onClick={() => handleSelectMonth("")}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                !selectedMonth
-                  ? "bg-cyan-500 text-slate-950 font-bold"
-                  : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
-              }`}
-            >
-              All
-            </button>
-            {availableFolders.map((m) => {
-              const isSelected = (selectedMonth || "October 2026").toLowerCase() === m.name.toLowerCase();
-              return (
-                <button
-                  key={m.name}
-                  onClick={() => handleSelectMonth(m.name)}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20"
-                      : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
-                  }`}
-                >
-                  <FolderIcon size={11} className={isSelected ? "text-slate-950" : "text-cyan-400"} />
-                  <span>{m.name}</span>
-                </button>
-              );
-            })}
-          </div>
+          {availableFolders.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">
+                Switch Folder:
+              </span>
+              <button
+                onClick={() => handleSelectMonth("")}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  !selectedMonth
+                    ? "bg-cyan-500 text-slate-950 font-bold"
+                    : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
+                }`}
+              >
+                All
+              </button>
+              {availableFolders.map((m) => {
+                const isSelected = (selectedMonth || "").toLowerCase() === m.name.toLowerCase();
+                return (
+                  <button
+                    key={m.name}
+                    onClick={() => handleSelectMonth(m.name)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20"
+                        : "bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50"
+                    }`}
+                  >
+                    <FolderIcon size={11} className={isSelected ? "text-slate-950" : "text-cyan-400"} />
+                    <span>{m.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Transactions Table */}
           <div className="card-glass rounded-2xl p-5 sm:p-7">
