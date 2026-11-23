@@ -384,7 +384,7 @@ const onSubmit = async (data) => {
                   Add Transaction
                 </h1>
                 <p className="text-slate-400 text-sm mt-0.5">
-                  Record a new income or expense
+                  Record a new income or expense +++
                 </p>
               </div>
             </div>
