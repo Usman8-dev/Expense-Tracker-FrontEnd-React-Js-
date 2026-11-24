@@ -321,7 +321,12 @@ function Dashboard() {
             const map = new Map();
             prev.forEach((f) => map.set(f.name, f));
             serverFolders.forEach((f) => map.set(f.name, f));
-            const merged = Array.from(map.values());
+            // Newest folder first so a just-created folder stays on top
+            const merged = Array.from(map.values()).sort((a, b) => {
+              const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              return tb - ta;
+            });
             try {
               localStorage.setItem("expenseflow_custom_folders", JSON.stringify(merged));
             } catch (e) {
@@ -470,11 +475,13 @@ function Dashboard() {
       monthName: newFolderMonth,
       year: newFolderYear,
       theme: newFolderTheme,
+      createdAt: new Date().toISOString(),
     };
 
+    // Newest folder goes to the top of the dashboard grid
     const updated = [
-      ...customFolders.filter((f) => f.id !== folderTitle),
       newFolder,
+      ...customFolders.filter((f) => f.id !== folderTitle),
     ];
     setCustomFolders(updated);
     try {
