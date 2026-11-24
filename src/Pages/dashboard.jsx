@@ -12,7 +12,10 @@ import {
   TrendingDown,
   Calendar,
   Sparkles,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
 import api from "../apis/axios";
 import { useToast } from "../context/ToastContext";
 
@@ -78,10 +81,7 @@ const FOLDER_THEMES = {
 // 3D & Neon Folder Icon component matching the attached design
 function FolderGraphic({ theme = "cyan", isNeon = false, className = "w-11 h-11" }) {
   if (isNeon) {
-    
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-
+    return (
       <svg className={className} viewBox="0 0 54 44" fill="none">
         <path
           d="M3 10C3 7.79086 4.79086 6 7 6H18.5C19.8 6 21 6.6 21.8 7.6L24.8 11.4C25.6 12.4 26.8 13 28.1 13H47C49.2091 13 51 14.7909 51 17V37C51 39.2091 49.2091 41 47 41H7C4.79086 41 3 39.2091 3 37V10Z"
@@ -103,10 +103,7 @@ function FolderGraphic({ theme = "cyan", isNeon = false, className = "w-11 h-11"
 
   const t = FOLDER_THEMES[theme] || FOLDER_THEMES.purple;
 
-  
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-
+  return (
     <svg className={className} viewBox="0 0 54 44" fill="none">
       <defs>
         <linearGradient id={`bg-${theme}`} x1="0" y1="0" x2="0" y2="1">
@@ -153,10 +150,7 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
   const strokeColor = isActive ? "#06b6d4" : "rgba(148, 163, 184, 0.16)";
   const strokeWidth = isActive ? 2 : 1;
 
-  
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-
+  return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
       viewBox="0 0 360 185"
@@ -220,10 +214,6 @@ function Dashboard() {
   const [editFolderId, setEditFolderId] = useState(null);
   const [editFolderName, setEditFolderName] = useState("");
   const [editFolderTheme, setEditFolderTheme] = useState("cyan");
-  const [newFolderName, setNewFolderName] = useState("");
-  const [newFolderMonth, setNewFolderMonth] = useState("November");
-  const [newFolderYear, setNewFolderYear] = useState("2026");
-  const [newFolderTheme, setNewFolderTheme] = useState("cyan");
 
   const [selectedFolderDetails, setSelectedFolderDetails] = useState(null);
 
@@ -235,10 +225,7 @@ function Dashboard() {
   useEffect(() => {
     const refetch = () => fetchExpenses();
     window.addEventListener("expenseflow:synced", refetch);
-    
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-) => window.removeEventListener("expenseflow:synced", refetch);
+    return () => window.removeEventListener("expenseflow:synced", refetch);
   }, []);
 
   const fetchExpenses = async () => {
@@ -449,6 +436,153 @@ function Dashboard() {
     });
   };
 
+  // Only folders synced with the server carry a real Mongo ObjectId
+  const isServerId = (id) => /^[0-9a-fA-F]{24}$/.test(String(id || ""));
+
+  // Open the edit dialog prefilled with the folder's current values
+  const openEditFolder = (folder) => {
+    setEditFolderId(folder._id || folder.id);
+    setEditFolderName(folder.name);
+    setEditFolderTheme(folder.theme || "cyan");
+    setShowEditFolderDialog(true);
+  };
+
+  // Save edited folder (name / theme) to server + local state
+  const handleEditFolder = async () => {
+    const newName = editFolderName.trim();
+    if (!newName) {
+      showToast({
+        severity: "warn",
+        summary: "Invalid Name",
+        detail: "Folder name cannot be empty",
+        life: 3000,
+      });
+      return;
+    }
+
+    const target = customFolders.find((f) => (f._id || f.id) === editFolderId);
+    const oldName = target?.name || "";
+
+    const duplicate = customFolders.some(
+      (f) =>
+        (f._id || f.id) !== editFolderId &&
+        (f.name || "").trim().toLowerCase() === newName.toLowerCase()
+    );
+    if (duplicate) {
+      showToast({
+        severity: "error",
+        summary: "Duplicate Name",
+        detail: "A folder with this name already exists",
+        life: 3000,
+      });
+      return;
+    }
+
+    try {
+      // Sync with server first when the folder exists there
+      if (target && isServerId(target._id)) {
+        await api.put(`/expense/folder/update/${target._id}`, {
+          name: newName,
+          theme: editFolderTheme,
+        });
+      }
+
+      // Update local cache
+      const updated = customFolders.map((f) =>
+        (f._id || f.id) === editFolderId
+          ? { ...f, name: newName, theme: editFolderTheme }
+          : f
+      );
+      setCustomFolders(updated);
+      try {
+        localStorage.setItem(
+          "expenseflow_custom_folders",
+          JSON.stringify(updated)
+        );
+      } catch (e) {
+        console.error(e);
+      }
+
+      // Keep the active selection in sync after a rename
+      if (oldName && activeFolderKey === oldName) {
+        setActiveFolderKey(newName);
+      }
+
+      // Refetch so transactions linked by the old folder name are re-grouped
+      if (oldName && oldName !== newName) {
+        fetchExpenses();
+      }
+
+      setShowEditFolderDialog(false);
+      showToast({
+        severity: "success",
+        summary: "Folder Updated",
+        detail: `Folder updated to "${newName}"`,
+        life: 3000,
+      });
+    } catch (error) {
+      showToast({
+        severity: "error",
+        summary: "Failed",
+        detail: error.response?.data?.message || "Could not update folder",
+        life: 3000,
+      });
+    }
+  };
+
+  // Delete a folder (with confirmation)
+  const handleDeleteFolder = (folder) => {
+    confirmDialog({
+      message: `Do you want to delete the folder "${folder.name}"?`,
+      header: "Delete Confirmation",
+      icon: "pi pi-info-circle",
+      acceptClassName: "p-button-danger",
+      acceptLabel: "Delete",
+      rejectLabel: "Cancel",
+      accept: async () => {
+        try {
+          if (folder._id && isServerId(folder._id)) {
+            await api.delete(`/expense/folder/delete/${folder._id}`);
+          }
+
+          const updated = customFolders.filter(
+            (f) => (f._id || f.id) !== folder.id
+          );
+          setCustomFolders(updated);
+          try {
+            localStorage.setItem(
+              "expenseflow_custom_folders",
+              JSON.stringify(updated)
+            );
+          } catch (e) {
+            console.error(e);
+          }
+
+          if (
+            activeFolderKey === folder.id ||
+            activeFolderKey === folder.name
+          ) {
+            setActiveFolderKey(null);
+          }
+
+          showToast({
+            severity: "success",
+            summary: "Deleted",
+            detail: `Folder "${folder.name}" deleted successfully`,
+            life: 3000,
+          });
+        } catch (error) {
+          showToast({
+            severity: "error",
+            summary: "Failed",
+            detail: error.response?.data?.message || "Could not delete folder",
+            life: 3000,
+          });
+        }
+      },
+    });
+  };
+
   const monthsList = [
     "January",
     "February",
@@ -466,10 +600,7 @@ function Dashboard() {
 
   const yearsList = ["2025", "2026", "2027", "2028"];
 
-  
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-
+  return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
@@ -487,7 +618,30 @@ function Dashboard() {
           transform: translateY(-4px);
           box-shadow: 0 12px 35px rgba(6, 182, 212, 0.15);
         }
+
+        /* ConfirmDialog dark theme */
+        .p-confirm-dialog {
+          background: #1e293b !important;
+          border: 1px solid rgba(148, 163, 184, 0.2) !important;
+          border-radius: 16px !important;
+          color: #e2e8f0 !important;
+        }
+        .p-confirm-dialog .p-dialog-header {
+          background: transparent !important;
+          color: #f1f5f9 !important;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.12) !important;
+        }
+        .p-confirm-dialog .p-dialog-content {
+          background: transparent !important;
+          color: #cbd5e1 !important;
+        }
+        .p-confirm-dialog .p-dialog-footer {
+          background: transparent !important;
+          border-top: 1px solid rgba(148, 163, 184, 0.12) !important;
+        }
       `}</style>
+
+      <ConfirmDialog />
 
       <div className="space-y-8">
         {/* Page Header */}
@@ -616,10 +770,7 @@ function Dashboard() {
                 FOLDER_THEMES[folder.theme]?.badgeBg ||
                 "bg-slate-700/50 text-slate-300 border-slate-600/50";
 
-              
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
-
+                return (
                 <div
                   key={folder.id}
                   onClick={() => navigate(`/expenses/all?month=${encodeURIComponent(folder.name)}`)}
@@ -652,6 +803,28 @@ function Dashboard() {
                         >
                           {folder.count} Transactions
                         </span>
+                        <button
+                          type="button"
+                          title="Edit Folder"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditFolder(folder);
+                          }}
+                          className="p-1.5 rounded-lg border border-slate-600/60 bg-slate-800/70 text-slate-300 hover:text-cyan-300 hover:border-cyan-400/60 hover:bg-cyan-500/10 transition-all cursor-pointer active:scale-95"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          title="Delete Folder"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFolder(folder);
+                          }}
+                          className="p-1.5 rounded-lg border border-slate-600/60 bg-slate-800/70 text-slate-300 hover:text-red-400 hover:border-red-400/60 hover:bg-red-500/10 transition-all cursor-pointer active:scale-95"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </div>
 
@@ -764,10 +937,8 @@ function Dashboard() {
               {Object.keys(FOLDER_THEMES).map((themeKey) => {
                 const t = FOLDER_THEMES[themeKey];
                 const isSelected = newFolderTheme === themeKey;
-                
-            // Added edit and delete icons for each folder card
-            // (Will be injected into the folder card JSX below)
 
+                return (
                   <button
                     key={themeKey}
                     type="button"
@@ -796,6 +967,80 @@ function Dashboard() {
               className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
             >
               Save Folder
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
+      {/* EDIT FOLDER DIALOG */}
+      <Dialog
+        header={
+          <div className="flex items-center gap-2 text-white font-display text-xl font-bold">
+            <Pencil className="text-cyan-400" size={20} />
+            <span>Edit Folder</span>
+          </div>
+        }
+        visible={showEditFolderDialog}
+        onHide={() => setShowEditFolderDialog(false)}
+        className="w-full max-w-md mx-4"
+        contentClassName="!bg-slate-900 !text-white !p-6"
+        headerClassName="!bg-slate-900 !text-white !border-b !border-slate-800"
+      >
+        <div className="space-y-4">
+          <p className="text-slate-400 text-sm">
+            Rename your folder or change its theme accent.
+          </p>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Folder Title
+            </label>
+            <InputText
+              value={editFolderName}
+              onChange={(e) => setEditFolderName(e.target.value)}
+              placeholder="Folder name"
+              className="w-full bg-slate-800 text-white border-slate-700 p-2.5 rounded-lg"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+              Folder Theme Accent
+            </label>
+            <div className="flex gap-3">
+              {Object.keys(FOLDER_THEMES).map((themeKey) => {
+                const t = FOLDER_THEMES[themeKey];
+                const isSelected = editFolderTheme === themeKey;
+
+                return (
+                  <button
+                    key={themeKey}
+                    type="button"
+                    onClick={() => setEditFolderTheme(themeKey)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-cyan-400 bg-cyan-500/20 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                        : "border-slate-700 bg-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+            <Button
+              label="Cancel"
+              className="!text-slate-400 hover:!text-white !p-button-text text-sm"
+              onClick={() => setShowEditFolderDialog(false)}
+            />
+            <button
+              onClick={handleEditFolder}
+              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-lg shadow-cyan-500/25 active:scale-95 cursor-pointer"
+            >
+              Update Folder
             </button>
           </div>
         </div>
