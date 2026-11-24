@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ThemeToggle } from "./ThemeToggle";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -163,11 +164,14 @@ function Navbar() {
             </div>
           </div>
 
-          {/* User Avatar */}
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">
-              {user?.name?.charAt(0).toUpperCase()}
-            </span>
+          {/* User Avatar + Theme Toggle */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle className="!w-7 !h-7 !p-0" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-bold">
+                {user?.name?.charAt(0).toUpperCase()}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -196,6 +200,7 @@ function Navbar() {
               </h1>
               <p className="text-emerald-400 text-xs">Smart Finance</p>
             </div>
+            <ThemeToggle className="!w-7 !h-7 !p-0 ml-auto" />
           </div>
         </div>
 

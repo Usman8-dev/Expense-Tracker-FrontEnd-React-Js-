@@ -352,7 +352,7 @@ const onSubmit = async (data) => {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)]`}>
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           {/* Back + Header */}
           <button

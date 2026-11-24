@@ -133,7 +133,7 @@ function EditTransaction() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850 flex items-center justify-center">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)] flex items-center justify-center`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto" />
           <p className="text-slate-400 mt-4">Loading transaction...</p>
@@ -286,7 +286,7 @@ function EditTransaction() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)]`}>
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           <button
             onClick={() => navigate("/expenses/all")}

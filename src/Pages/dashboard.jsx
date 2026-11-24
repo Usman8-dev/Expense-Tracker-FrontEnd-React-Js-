@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { Dropdown } from "primereact/dropdown";
@@ -263,6 +264,9 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
 function Dashboard() {
   const navigate = useNavigate();
   const showToast = useToast();
+  const { theme } = useTheme();
+
+  const pageBg = `bg-[var(--ef-page-bg)] min-h-screen`;
 
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);

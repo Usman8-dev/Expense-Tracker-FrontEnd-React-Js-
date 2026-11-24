@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { CategorySchema } from "../../validations/CategorySchema";
+import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../apis/axios";
 
@@ -12,6 +13,7 @@ import { ArrowLeft, FolderKanban } from "lucide-react";
 function CreateCategory() {
   const navigate = useNavigate();
   const showToast = useToast();
+  const { theme } = useTheme();
 
   const {
     register,
@@ -86,7 +88,7 @@ function CreateCategory() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)]`}>
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           <button
             onClick={() => navigate("/categories")}

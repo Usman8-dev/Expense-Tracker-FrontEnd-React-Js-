@@ -11,12 +11,14 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 import api from "../../apis/axios";
 import { useToast } from "../../context/ToastContext";
 
 function AllCategories() {
   const navigate = useNavigate();
   const showToast = useToast();
+  const { theme } = useTheme();
 
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -363,7 +365,7 @@ function AllCategories() {
 
       <ConfirmDialog />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)]`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">

@@ -1,5 +1,150 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------ */
+/* Theme color variables                                              */
+/* Dark theme (default)                                               */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Page backgrounds */
+  --ef-page-bg: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+  --ef-card-bg: rgba(15, 23, 42, 0.85);
+  --ef-card-hover: rgba(30, 41, 59, 0.9);
+  --ef-glass: linear-gradient(135deg, rgba(15, 23, 42, 0.7), rgba(30, 41, 59, 0.7));
+  --ef-glass-border: rgba(148, 163, 184, 0.15);
+  --ef-input-bg: rgba(15, 23, 42, 0.7);
+  --ef-input-border: rgba(148, 163, 184, 0.2);
+  --ef-dropdown-bg: rgba(15, 23, 42, 0.7);
+  --ef-datepicker-bg: #1e293b;
+
+  /* Text */
+  --ef-text-primary: #ffffff;
+  --ef-text-secondary: #cbd5e1;
+  --ef-text-muted: #94a3b8;
+  --ef-text-inverse: #0f172a;
+
+  /* Status / semantic */
+  --ef-emerald: #10b981;
+  --ef-cyan: #06b6d4;
+  --ef-red: #ef4444;
+  --ef-amber: #f59e0b;
+
+  /* Shadows */
+  --ef-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+  --ef-shadow-lg: 0 12px 35px rgba(6, 182, 212, 0.15);
+}
+
+/* ------------------------------------------------------------------ */
+/* Light theme overrides                                              */
+/* ------------------------------------------------------------------ */
+[data-theme="light"] {
+  /* Page backgrounds */
+  --ef-page-bg: linear-gradient(135deg, #f8fafc, #f1f5f9, #ffffff);
+  --ef-card-bg: rgba(255, 255, 255, 0.9);
+  --ef-card-hover: rgba(241, 245, 249, 0.8);
+  --ef-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(241, 245, 249, 0.8));
+  --ef-glass-border: rgba(148, 163, 184, 0.2);
+  --ef-input-bg: rgba(255, 255, 255, 0.8);
+  --ef-input-border: rgba(148, 163, 184, 0.3);
+  --ef-dropdown-bg: rgba(255, 255, 255, 0.85);
+  --ef-datepicker-bg: #ffffff;
+
+  /* Text */
+  --ef-text-primary: #0f172a;
+  --ef-text-secondary: #475569;
+  --ef-text-muted: #64748b;
+  --ef-text-inverse: #ffffff;
+
+  /* Status / semantic */
+  --ef-emerald: #059669;
+  --ef-cyan: #0891b2;
+  --ef-red: #dc2626;
+  --ef-amber: #d97706;
+
+  /* Shadows */
+  --ef-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --ef-shadow-lg: 0 12px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Apply page background via data-theme so every page can use bg-[var(--ef-page-bg)] */
+html[data-theme="dark"] body,
+html:not([data-theme]) body {
+  background: var(--ef-page-bg);
+  color: var(--ef-text-primary);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+html[data-theme="light"] body {
+  background: var(--ef-page-bg);
+  color: var(--ef-text-primary);
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ------------------------------------------------------------------ */
+/* Light-mode overrides for common dark Tailwind classes              */
+/* These keep the app readable without editing every component.       */
+/* ------------------------------------------------------------------ */
+[data-theme="light"] {
+  /* Text colors */
+  .text-white { color: var(--ef-text-primary) !important; }
+  .text-slate-300 { color: var(--ef-text-secondary) !important; }
+  .text-slate-400 { color: var(--ef-text-secondary) !important; }
+  .text-slate-500 { color: var(--ef-text-muted) !important; }
+  .text-emerald-400 { color: var(--ef-emerald) !important; }
+  .text-cyan-400 { color: var(--ef-cyan) !important; }
+  .text-red-400 { color: var(--ef-red) !important; }
+  .text-amber-400 { color: var(--ef-amber) !important; }
+
+  /* Backgrounds */
+  .bg-slate-950, .bg-slate-900, .bg-slate-800 {
+    background-color: var(--ef-card-bg) !important;
+  }
+  .bg-gradient-to-br.from-slate-950,
+  .bg-gradient-to-br.via-slate-900,
+  .bg-gradient-to-br.to-slate-850 {
+    background: var(--ef-page-bg) !important;
+  }
+  .bg-emerald-500\/20, .bg-emerald-500\/15 {
+    background-color: rgba(5, 150, 105, 0.15) !important;
+  }
+  .bg-red-500\/15, .bg-red-500\/20 {
+    background-color: rgba(220, 38, 38, 0.15) !important;
+  }
+  .bg-cyan-500\/20, .bg-cyan-500\/15 {
+    background-color: rgba(8, 145, 178, 0.15) !important;
+  }
+
+  /* Borders */
+  .border-slate-700, .border-slate-600, .border-slate-700\/50, .border-slate-600\/50 {
+    border-color: var(--ef-glass-border) !important;
+  }
+  .border-slate-700\/60, .border-slate-600\/60 {
+    border-color: var(--ef-glass-border) !important;
+  }
+  .border-red-500\/30, .border-red-400 {
+    border-color: rgba(220, 38, 38, 0.3) !important;
+  }
+  .border-emerald-500\/30, .border-emerald-400 {
+    border-color: rgba(5, 150, 105, 0.3) !important;
+  }
+  .border-cyan-500\/30, .border-cyan-400 {
+    border-color: rgba(8, 145, 178, 0.3) !important;
+  }
+
+  /* PrimeReact dark overrides */
+  .p-inputtext, .p-inputtextarea, .p-inputnumber-input,
+  .p-dropdown, .p-calendar .p-inputtext {
+    background: var(--ef-input-bg) !important;
+    color: var(--ef-text-primary) !important;
+    border-color: var(--ef-input-border) !important;
+  }
+  .p-dropdown-panel, .p-datepicker {
+    background: var(--ef-dropdown-bg) !important;
+    color: var(--ef-text-primary) !important;
+  }
+  .p-toast .p-toast-message {
+    background: var(--ef-glass) !important;
+    color: var(--ef-text-primary) !important;
+  }
+}
 
 /* Toast Global Styling */
 .p-toast {

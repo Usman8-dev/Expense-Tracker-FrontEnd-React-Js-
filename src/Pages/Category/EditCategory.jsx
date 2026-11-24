@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate, useParams } from "react-router-dom";
 import { CategorySchema } from "../../validations/CategorySchema";
+import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import api from "../../apis/axios";
 
@@ -14,6 +15,7 @@ function EditCategory() {
   const navigate = useNavigate();
   const { id } = useParams();
   const showToast = useToast();
+  const { theme } = useTheme();
 
   const [loading, setLoading] = useState(true);
 
@@ -85,7 +87,7 @@ function EditCategory() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850 flex items-center justify-center">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)] flex items-center justify-center`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto" />
           <p className="text-slate-400 mt-4">Loading category...</p>
@@ -133,7 +135,7 @@ function EditCategory() {
         }
       `}</style>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850">
+      <div className={`min-h-screen bg-[var(--ef-page-bg)]`}>
         <div className="max-w-xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
           <button
             onClick={() => navigate("/categories")}

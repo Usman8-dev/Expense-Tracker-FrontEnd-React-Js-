@@ -89,7 +89,7 @@ function Login() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-850 flex items-center justify-center p-4 overflow-hidden font-sans">
+    <div className={`relative min-h-screen bg-[var(--ef-page-bg)] flex items-center justify-center p-4 overflow-hidden font-sans`}>
       {/* Animated background elements */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-500/20 to-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
