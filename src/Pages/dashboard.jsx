@@ -857,7 +857,7 @@ function Dashboard() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-lg shadow-cyan-500/20 active:scale-95"
             >
               <Plus size={15} strokeWidth={3} />
-              <span>+ CREATE FOLDER</span>
+              <span>CREATE FOLDER</span>
             </button>
           </div>
 
