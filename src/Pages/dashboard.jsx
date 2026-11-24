@@ -563,8 +563,21 @@ function Dashboard() {
     }
   };
 
-  // Delete a folder (with confirmation)
+  // Delete a folder (with confirmation) – only empty folders can be deleted
   const handleDeleteFolder = (folder) => {
+    // Guard: a folder with transactions must be emptied first
+    if (folder.count > 0) {
+      showToast({
+        severity: "warn",
+        summary: "Folder Not Empty",
+        detail: `This folder has ${folder.count} transaction${
+          folder.count === 1 ? "" : "s"
+        }. Please delete its transactions first, then delete the folder.`,
+        life: 5000,
+      });
+      return;
+    }
+
     confirmDialog({
       message: `Do you want to delete the folder "${folder.name}"?`,
       header: "Delete Confirmation",
