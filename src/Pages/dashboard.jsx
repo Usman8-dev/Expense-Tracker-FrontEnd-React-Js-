@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
-import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import {
   Plus,
@@ -281,7 +280,6 @@ function Dashboard() {
 
   // Modal states
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
   const [newFolderMonth, setNewFolderMonth] = useState("November");
   const [newFolderYear, setNewFolderYear] = useState("2026");
   const [newFolderTheme, setNewFolderTheme] = useState("cyan");
@@ -465,8 +463,7 @@ function Dashboard() {
 
   // Handle creating a new folder
   const handleCreateFolder = async () => {
-    const folderTitle =
-      newFolderName.trim() || `${newFolderMonth} ${newFolderYear}`;
+    const folderTitle = `${newFolderMonth} ${newFolderYear}`;
     const newFolder = {
       id: folderTitle,
       name: folderTitle,
@@ -502,7 +499,6 @@ function Dashboard() {
 
     setActiveFolderKey(folderTitle);
     setShowCreateFolderDialog(false);
-    setNewFolderName("");
 
     showToast({
       severity: "success",
@@ -952,18 +948,6 @@ function Dashboard() {
                 placeholder="Year"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Custom Folder Title (Optional)
-            </label>
-            <InputText
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder={`${newFolderMonth} ${newFolderYear}`}
-              className="w-full bg-slate-800 text-white border-slate-700 p-2.5 rounded-lg"
-            />
           </div>
 
           <div>
