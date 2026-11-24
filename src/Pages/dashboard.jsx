@@ -554,6 +554,30 @@ function Dashboard() {
         life: 3000,
       });
     } catch (error) {
+      // Folder no longer exists on the server for this account
+      if (error.response?.status === 404) {
+        const cleaned = customFolders.filter(
+          (f) => (f._id || f.id) !== editFolderId
+        );
+        setCustomFolders(cleaned);
+        try {
+          localStorage.setItem(
+            "expenseflow_custom_folders",
+            JSON.stringify(cleaned)
+          );
+        } catch (e) {
+          console.error(e);
+        }
+        setShowEditFolderDialog(false);
+        showToast({
+          severity: "info",
+          summary: "Folder Removed",
+          detail: `"${target?.name || "Folder"}" no longer exists on the server and was removed from this device.`,
+          life: 4000,
+        });
+        return;
+      }
+
       showToast({
         severity: "error",
         summary: "Failed",
@@ -618,6 +642,36 @@ function Dashboard() {
             life: 3000,
           });
         } catch (error) {
+          // Folder no longer exists on the server for this account
+          // (deleted from another device, or left behind by an old session)
+          if (error.response?.status === 404) {
+            const cleaned = customFolders.filter(
+              (f) => (f._id || f.id) !== folder.id
+            );
+            setCustomFolders(cleaned);
+            try {
+              localStorage.setItem(
+                "expenseflow_custom_folders",
+                JSON.stringify(cleaned)
+              );
+            } catch (e) {
+              console.error(e);
+            }
+            if (
+              activeFolderKey === folder.id ||
+              activeFolderKey === folder.name
+            ) {
+              setActiveFolderKey(null);
+            }
+            showToast({
+              severity: "info",
+              summary: "Folder Removed",
+              detail: `"${folder.name}" no longer exists on the server and was removed from this device.`,
+              life: 4000,
+            });
+            return;
+          }
+
           showToast({
             severity: "error",
             summary: "Failed",

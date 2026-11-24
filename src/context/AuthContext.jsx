@@ -14,9 +14,12 @@ function readStoredUser() {
 /**
  * Cached API responses and the offline outbox are user-scoped: they must be
  * wiped on logout or the next account on this device could read them offline.
+ * The custom folder list is user-scoped too - without this, folders from a
+ * previous account stay visible and deleting one fails with "Folder not found".
  */
 function purgeOfflineData() {
   clearAllOfflineData();
+  localStorage.removeItem("expenseflow_custom_folders");
   if (typeof caches !== "undefined") {
     caches
       .keys()
