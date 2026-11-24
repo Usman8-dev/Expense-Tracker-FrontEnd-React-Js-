@@ -76,6 +76,83 @@ const FOLDER_THEMES = {
     iconFront: "#f43f5e",
     iconGlow: "#fb7185",
   },
+  blue: {
+    name: "Blue",
+    border: "border-blue-400/50",
+    stroke: "rgba(59, 130, 246, 0.5)",
+    glow: "rgba(59, 130, 246, 0.3)",
+    badgeBg: "bg-blue-500/10 text-blue-300 border-blue-500/20",
+    accent: "rgba(59, 130, 246, 0.12)",
+    iconBack: "#2563eb",
+    iconFront: "#3b82f6",
+    iconGlow: "#60a5fa",
+  },
+  indigo: {
+    name: "Indigo",
+    border: "border-indigo-400/50",
+    stroke: "rgba(99, 102, 241, 0.5)",
+    glow: "rgba(99, 102, 241, 0.3)",
+    badgeBg: "bg-indigo-500/10 text-indigo-300 border-indigo-500/20",
+    accent: "rgba(99, 102, 241, 0.12)",
+    iconBack: "#4f46e5",
+    iconFront: "#6366f1",
+    iconGlow: "#818cf8",
+  },
+  violet: {
+    name: "Violet",
+    border: "border-violet-400/50",
+    stroke: "rgba(139, 92, 246, 0.5)",
+    glow: "rgba(139, 92, 246, 0.3)",
+    badgeBg: "bg-violet-500/10 text-violet-300 border-violet-500/20",
+    accent: "rgba(139, 92, 246, 0.12)",
+    iconBack: "#7c3aed",
+    iconFront: "#8b5cf6",
+    iconGlow: "#a78bfa",
+  },
+  pink: {
+    name: "Pink",
+    border: "border-pink-400/50",
+    stroke: "rgba(236, 72, 153, 0.5)",
+    glow: "rgba(236, 72, 153, 0.3)",
+    badgeBg: "bg-pink-500/10 text-pink-300 border-pink-500/20",
+    accent: "rgba(236, 72, 153, 0.12)",
+    iconBack: "#db2777",
+    iconFront: "#ec4899",
+    iconGlow: "#f472b6",
+  },
+  fuchsia: {
+    name: "Fuchsia",
+    border: "border-fuchsia-400/50",
+    stroke: "rgba(217, 70, 239, 0.5)",
+    glow: "rgba(217, 70, 239, 0.3)",
+    badgeBg: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20",
+    accent: "rgba(217, 70, 239, 0.12)",
+    iconBack: "#c026d3",
+    iconFront: "#d946ef",
+    iconGlow: "#e879f9",
+  },
+  orange: {
+    name: "Orange",
+    border: "border-orange-400/50",
+    stroke: "rgba(249, 115, 22, 0.5)",
+    glow: "rgba(249, 115, 22, 0.3)",
+    badgeBg: "bg-orange-500/10 text-orange-300 border-orange-500/20",
+    accent: "rgba(249, 115, 22, 0.12)",
+    iconBack: "#ea580c",
+    iconFront: "#f97316",
+    iconGlow: "#fb923c",
+  },
+  teal: {
+    name: "Teal",
+    border: "border-teal-400/50",
+    stroke: "rgba(20, 184, 166, 0.5)",
+    glow: "rgba(20, 184, 166, 0.3)",
+    badgeBg: "bg-teal-500/10 text-teal-300 border-teal-500/20",
+    accent: "rgba(20, 184, 166, 0.12)",
+    iconBack: "#0d9488",
+    iconFront: "#14b8a6",
+    iconGlow: "#2dd4bf",
+  },
 };
 
 // 3D & Neon Folder Icon component matching the attached design
@@ -212,7 +289,6 @@ function Dashboard() {
   // Edit folder states
   const [showEditFolderDialog, setShowEditFolderDialog] = useState(false);
   const [editFolderId, setEditFolderId] = useState(null);
-  const [editFolderName, setEditFolderName] = useState("");
   const [editFolderTheme, setEditFolderTheme] = useState("cyan");
 
   const [selectedFolderDetails, setSelectedFolderDetails] = useState(null);
@@ -439,50 +515,21 @@ function Dashboard() {
   // Only folders synced with the server carry a real Mongo ObjectId
   const isServerId = (id) => /^[0-9a-fA-F]{24}$/.test(String(id || ""));
 
-  // Open the edit dialog prefilled with the folder's current values
+  // Open the edit dialog prefilled with the folder's current color
   const openEditFolder = (folder) => {
     setEditFolderId(folder._id || folder.id);
-    setEditFolderName(folder.name);
     setEditFolderTheme(folder.theme || "cyan");
     setShowEditFolderDialog(true);
   };
 
-  // Save edited folder (name / theme) to server + local state
+  // Save edited folder color to server + local state
   const handleEditFolder = async () => {
-    const newName = editFolderName.trim();
-    if (!newName) {
-      showToast({
-        severity: "warn",
-        summary: "Invalid Name",
-        detail: "Folder name cannot be empty",
-        life: 3000,
-      });
-      return;
-    }
-
     const target = customFolders.find((f) => (f._id || f.id) === editFolderId);
-    const oldName = target?.name || "";
-
-    const duplicate = customFolders.some(
-      (f) =>
-        (f._id || f.id) !== editFolderId &&
-        (f.name || "").trim().toLowerCase() === newName.toLowerCase()
-    );
-    if (duplicate) {
-      showToast({
-        severity: "error",
-        summary: "Duplicate Name",
-        detail: "A folder with this name already exists",
-        life: 3000,
-      });
-      return;
-    }
 
     try {
       // Sync with server first when the folder exists there
       if (target && isServerId(target._id)) {
         await api.put(`/expense/folder/update/${target._id}`, {
-          name: newName,
           theme: editFolderTheme,
         });
       }
@@ -490,7 +537,7 @@ function Dashboard() {
       // Update local cache
       const updated = customFolders.map((f) =>
         (f._id || f.id) === editFolderId
-          ? { ...f, name: newName, theme: editFolderTheme }
+          ? { ...f, theme: editFolderTheme }
           : f
       );
       setCustomFolders(updated);
@@ -503,21 +550,11 @@ function Dashboard() {
         console.error(e);
       }
 
-      // Keep the active selection in sync after a rename
-      if (oldName && activeFolderKey === oldName) {
-        setActiveFolderKey(newName);
-      }
-
-      // Refetch so transactions linked by the old folder name are re-grouped
-      if (oldName && oldName !== newName) {
-        fetchExpenses();
-      }
-
       setShowEditFolderDialog(false);
       showToast({
         severity: "success",
         summary: "Folder Updated",
-        detail: `Folder updated to "${newName}"`,
+        detail: `Color updated for "${target?.name || "folder"}"`,
         life: 3000,
       });
     } catch (error) {
@@ -931,9 +968,9 @@ function Dashboard() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Folder Theme Accent
+              Folder Color
             </label>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-4 gap-2.5">
               {Object.keys(FOLDER_THEMES).map((themeKey) => {
                 const t = FOLDER_THEMES[themeKey];
                 const isSelected = newFolderTheme === themeKey;
@@ -943,12 +980,28 @@ function Dashboard() {
                     key={themeKey}
                     type="button"
                     onClick={() => setNewFolderTheme(themeKey)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
                       isSelected
-                        ? "border-cyan-400 bg-cyan-500/20 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-                        : "border-slate-700 bg-slate-800 text-slate-400 hover:text-white"
+                        ? "text-white"
+                        : "border-slate-700 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-600"
                     }`}
+                    style={
+                      isSelected
+                        ? {
+                            borderColor: t.iconFront,
+                            backgroundColor: t.accent,
+                            boxShadow: `0 0 10px ${t.glow}`,
+                          }
+                        : undefined
+                    }
                   >
+                    <span
+                      className="w-5 h-5 rounded-full border border-white/20"
+                      style={{
+                        backgroundColor: t.iconFront,
+                        boxShadow: isSelected ? `0 0 8px ${t.iconGlow}` : "none",
+                      }}
+                    />
                     {t.name}
                   </button>
                 );
@@ -988,26 +1041,14 @@ function Dashboard() {
       >
         <div className="space-y-4">
           <p className="text-slate-400 text-sm">
-            Rename your folder or change its theme accent.
+            Choose a color for your folder.
           </p>
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Folder Title
+              Folder Color
             </label>
-            <InputText
-              value={editFolderName}
-              onChange={(e) => setEditFolderName(e.target.value)}
-              placeholder="Folder name"
-              className="w-full bg-slate-800 text-white border-slate-700 p-2.5 rounded-lg"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Folder Theme Accent
-            </label>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-4 gap-2.5">
               {Object.keys(FOLDER_THEMES).map((themeKey) => {
                 const t = FOLDER_THEMES[themeKey];
                 const isSelected = editFolderTheme === themeKey;
@@ -1017,12 +1058,28 @@ function Dashboard() {
                     key={themeKey}
                     type="button"
                     onClick={() => setEditFolderTheme(themeKey)}
-                    className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`flex flex-col items-center gap-1.5 py-2.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
                       isSelected
-                        ? "border-cyan-400 bg-cyan-500/20 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-                        : "border-slate-700 bg-slate-800 text-slate-400 hover:text-white"
+                        ? "text-white"
+                        : "border-slate-700 bg-slate-800 text-slate-400 hover:text-white hover:border-slate-600"
                     }`}
+                    style={
+                      isSelected
+                        ? {
+                            borderColor: t.iconFront,
+                            backgroundColor: t.accent,
+                            boxShadow: `0 0 10px ${t.glow}`,
+                          }
+                        : undefined
+                    }
                   >
+                    <span
+                      className="w-5 h-5 rounded-full border border-white/20"
+                      style={{
+                        backgroundColor: t.iconFront,
+                        boxShadow: isSelected ? `0 0 8px ${t.iconGlow}` : "none",
+                      }}
+                    />
                     {t.name}
                   </button>
                 );
