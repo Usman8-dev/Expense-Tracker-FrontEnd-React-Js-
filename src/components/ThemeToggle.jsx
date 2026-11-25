@@ -15,7 +15,12 @@ function ThemeToggle({ className = "" }) {
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={(event) => {
+        // Prevent a parent clickable container (e.g. the sidebar logo) from
+        // treating a theme change as a navigation click.
+        event.stopPropagation();
+        toggleTheme();
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

@@ -224,8 +224,22 @@ function FolderGraphic({ theme = "cyan", isNeon = false, className = "w-11 h-11"
 // SVG Background Silhouette for Folder Card Shape with raised top-left tab
 function FolderCardBackground({ isActive, theme = "cyan" }) {
   const t = FOLDER_THEMES[theme] || FOLDER_THEMES.cyan;
-  const strokeColor = isActive ? "#06b6d4" : "rgba(148, 163, 184, 0.16)";
+  const { theme: mode } = useTheme();
+  const isLight = mode === "light";
+
+  const strokeColor = isActive
+    ? "#06b6d4"
+    : isLight
+      ? "rgba(148, 163, 184, 0.55)"
+      : "rgba(148, 163, 184, 0.16)";
   const strokeWidth = isActive ? 2 : 1;
+
+  const bgStart = isLight
+    ? "rgba(255, 255, 255, 0.97)"
+    : "rgba(20, 27, 45, 0.88)";
+  const bgEnd = isLight
+    ? "rgba(241, 245, 249, 0.97)"
+    : "rgba(15, 23, 42, 0.94)";
 
   return (
     <svg
@@ -235,8 +249,8 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
     >
       <defs>
         <linearGradient id={`card-bg-${theme}`} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="rgba(20, 27, 45, 0.88)" />
-          <stop offset="100%" stopColor="rgba(15, 23, 42, 0.94)" />
+          <stop offset="0%" stopColor={bgStart} />
+          <stop offset="100%" stopColor={bgEnd} />
         </linearGradient>
       </defs>
 
@@ -255,7 +269,7 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
       <path
         d="M 1 24 Q 1 7 16 7 L 115 7 Q 128 7 136 16 L 143 24 Q 148 28 158 28 L 1 28 Z"
         fill={t.accent}
-        opacity={isActive ? 0.4 : 0.25}
+        opacity={isActive ? 0.4 : isLight ? 0.18 : 0.25}
       />
     </svg>
   );
@@ -264,7 +278,6 @@ function FolderCardBackground({ isActive, theme = "cyan" }) {
 function Dashboard() {
   const navigate = useNavigate();
   const showToast = useToast();
-  const { theme } = useTheme();
 
   const pageBg = `bg-[var(--ef-page-bg)] min-h-screen`;
 
