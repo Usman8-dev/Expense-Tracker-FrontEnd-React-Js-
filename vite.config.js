@@ -10,9 +10,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      // Prompt instead of silently swapping the worker: never reload the app
-      // under the user's feet while they are entering transactions.
-      registerType: 'prompt',
+      // Update the service worker silently in the background: no "new version"
+      // prompt and no automatic reload while the user is entering data.
+      // A new build is picked up on the next manual refresh / app launch.
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'ExpenseFlow - Personal Finance Tracker',
@@ -55,7 +56,7 @@ export default defineConfig({
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: false, // we ask the user instead (registerType: 'prompt')
+        skipWaiting: true, // activate the new worker right away, but don't force a reload
         runtimeCaching: [
           {
             // Transaction list + single transaction: network first so data is

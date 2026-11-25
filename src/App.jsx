@@ -16,7 +16,6 @@ import EditCategory from "./Pages/Category/EditCategory";
 import ExpenseReport from "./Pages/Reports/ExpenseReport";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ConnectivityProvider } from "./context/ConnectivityContext";
-import PwaUpdatePrompt from "./components/PwaUpdatePrompt";
 
 function App() {
   return (
@@ -60,7 +59,6 @@ function App() {
                   <Route path="/expense/reports" element={<ExpenseReport />} />
                 </Route>
               </Routes>
-              <PwaUpdatePrompt />
             </ConnectivityProvider>
           </ToastProvider>
         </AuthProvider>
