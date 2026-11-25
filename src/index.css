@@ -82,6 +82,7 @@ html[data-theme="light"] body {
 /* Light-mode overrides for common dark Tailwind classes              */
 /* These keep the app readable without editing every component.       */
 /* ------------------------------------------------------------------ */
+@layer utilities {
 [data-theme="light"] {
   color-scheme: light;
 
@@ -380,6 +381,7 @@ html[data-theme="light"] body {
     background: var(--ef-glass) !important;
     color: var(--ef-text-primary) !important;
   }
+}
 }
 
 /* Toast Global Styling */
