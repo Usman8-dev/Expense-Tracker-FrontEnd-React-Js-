@@ -22,7 +22,13 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-theme", theme);
+    root.style.colorScheme = theme;
     localStorage.setItem("expenseflow.theme", theme);
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", theme === "light" ? "#f8fafc" : "#0f172a");
+    }
   }, [theme]);
 
   const toggleTheme = () => {

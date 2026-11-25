@@ -8,7 +8,6 @@ import {
   PlusCircle,
   BarChart3,
   Tags,
-  User,
 } from "lucide-react";
 
 function Navbar() {

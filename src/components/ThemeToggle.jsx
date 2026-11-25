@@ -23,12 +23,12 @@ function ThemeToggle({ className = "" }) {
         relative flex items-center justify-center
         w-10 h-10 rounded-full
         transition-all duration-300
-        border 2px solid currentColor
+        border border-white/20
         bg-white/10
         text-white
         shadow-sm
-        hover:bg-white/15 hover:border-white/20
-        focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-current
+        hover:bg-white/15 hover:border-white/30
+        focus:outline-none focus:ring-2 focus:ring-white/20
         ${className}
       `}
     >
