@@ -7,7 +7,7 @@ import { useTheme } from "../context/ThemeContext";
  * Shows a Moon icon in dark mode (inviting the user to switch to light) and
  * a Sun icon in light mode. Increased size and contrast for visibility.
  */
-export default function ThemeToggle({ className = "" }) {
+function ThemeToggle({ className = "" }) {
   const [hovered, setHovered] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
@@ -44,3 +44,6 @@ export default function ThemeToggle({ className = "" }) {
     </button>
   );
 }
+
+export { ThemeToggle };
+export default ThemeToggle;
