@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Register from "./Pages/Auths/Register";
 import Login from "./Pages/Auths/Login";
+import ForgotPassword from "./Pages/Auths/ForgotPassword";
+import ResetPassword from "./Pages/Auths/ResetPassword";
 
 import { ToastProvider } from "./context/ToastContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -27,6 +29,8 @@ function App() {
               <Routes>
                 <Route path="/register" element={<Register />} />
                 <Route path="/" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
 
                 <Route
                   element={
